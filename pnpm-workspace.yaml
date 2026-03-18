@@ -1,3 +1,7 @@
 ignoredBuiltDependencies:
+  - '@clerk/shared'
+  - '@prisma/engines'
+  - prisma
+  - protobufjs
   - sharp
   - unrs-resolver
