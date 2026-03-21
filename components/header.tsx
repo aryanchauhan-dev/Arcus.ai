@@ -27,8 +27,8 @@ const Header = async() => {
           <Image
             src="/logo1.png"
             alt="skillExa Logo"
-            width={200}
-            height={60}
+            width={280}
+            height={80}
             className="h-28 w-auto object-contain"
           />
         </Link>
