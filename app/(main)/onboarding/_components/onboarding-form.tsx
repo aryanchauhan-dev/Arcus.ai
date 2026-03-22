@@ -26,7 +26,7 @@ const OnboardingForm = ({ industries }: Props) => {
     <div>
       <Card>
         <CardHeader>
-          <CardTitle>Complete Your Profile</CardTitle>
+          <CardTitle >Complete Your Profile</CardTitle>
           <CardDescription>Select Your Industry to get personalized career insights and recommendations.</CardDescription>
         </CardHeader>
         <CardContent>

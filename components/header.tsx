@@ -1,4 +1,3 @@
-import { SignInButton, Show, UserButton } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,26 +14,23 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from "./ui/dropdown-menu";
-import { checkUser } from "@/lib/CheckUser";
 
 const Header = async() => {
-  await checkUser();
   return (
     <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-50 supports-backdrop-filter:bg-background/60">
-      <nav className="px-4 lg:px-8 sm:px-6 h-16 flex items-center justify-between">
+      <nav className="px-4 lg:px-8 sm:px-6 h-20 flex items-center justify-between">
 
         <Link href="/">
           <Image
-            src="/logo1.png"
+            src="/arcus_ai_logo.svg"
             alt="skillExa Logo"
-            width={280}
-            height={80}
-            className="h-28 w-auto object-contain"
+            width={160}
+            height={58}
+            className="h-20 w-auto object-contain -ml-18"
           />
         </Link>
 
         <div className="flex items-center space-x-2 md:space-x-4">
-          <Show when="signed-in">
             <Link href="/dashboard">
               <Button variant={"outline"} className="cursor-pointer">
                 <LayoutDashboard className="h-4 w-3 mr-2" />
@@ -77,23 +73,9 @@ const Header = async() => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          </Show>
 
-          <Show when="signed-out">
-        <SignInButton>
+          
           <Button variant={"outline"}>Sign In</Button>
-        </SignInButton>
-      </Show>
-      <Show when="signed-in">
-        <UserButton appearance={{
-          elements:{
-            avatarBox: "h-10 w-10",
-            userButtonPopoverCard: "shadow-lg border border-gray-200",
-            userButtonPopoverActionButton: "hover:bg-gray-100",
-            userPreviewMainIdentifier: "font-semibold"
-          },
-        }}/>
-      </Show>
         </div>
       </nav>
     </header>

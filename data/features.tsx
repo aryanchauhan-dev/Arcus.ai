@@ -34,28 +34,4 @@ export const features = [
     description:
       "Create professional, ATS-optimized resumes in minutes with intelligent suggestions and formatting.",
   },
-  {
-    icon: <FileText className="w-10 h-10 mb-4 text-primary" />,
-    title: "AI Cover Letter Generator",
-    description:
-      "Generate tailored cover letters for any role using AI, helping you stand out to recruiters instantly.",
-  },
-  {
-    icon: <Target className="w-10 h-10 mb-4 text-primary" />,
-    title: "Skill Gap Analysis",
-    description:
-      "Identify the skills required for your target role and discover what you need to learn to stay competitive.",
-  },
-  {
-    icon: <Map className="w-10 h-10 mb-4 text-primary" />,
-    title: "Personalized Career Roadmap",
-    description:
-      "Get a step-by-step roadmap outlining the skills, tools, and milestones needed to reach your career goals.",
-  },
-  {
-    icon: <Lightbulb className="w-10 h-10 mb-4 text-primary" />,
-    title: "Skill-Based Learning Recommendations",
-    description:
-      "Receive curated learning resources and course recommendations tailored to the skills required for your desired career path.",
-  },
 ];

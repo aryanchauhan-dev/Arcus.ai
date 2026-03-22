@@ -57,18 +57,18 @@ export default function Home() {
               <p className="text-muted-foreground">Interview Questions</p>
             </div>
             <div className="flex flex-col items-center justify-center space-y-2">
-              <h3 className="text-4xl font-bold">300+</h3>
+              <h3 className="text-4xl font-bold">40+</h3>
               <p className="text-muted-foreground">Resume Templates Generated</p>
             </div>
             <div className="flex flex-col items-center justify-center space-y-2">
               <h3 className="text-4xl font-bold">24/7</h3>
-              <p className="text-muted-foreground">AI Career Assistance</p>
+              <p className="text-muted-foreground">AI Career Insights</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-background/60">
+      <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32 bg-background/60">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="text-3xl font-bold mb-4">How It Works</h2>
