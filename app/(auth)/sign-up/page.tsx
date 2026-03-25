@@ -3,89 +3,87 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Eye, EyeOff, Sparkles } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { z } from "zod"
+import { signUpSchema } from "@/schemas/sign-up.schema";
+
+type SignUpFormValues = z.infer<typeof signUpSchema>;
+
+const getPasswordStrength = (
+  p: string
+): { label: string; color: string; width: string } => {
+  if (p.length === 0) return { label: "", color: "", width: "0%" };
+  if (p.length < 6) return { label: "Too short", color: "bg-red-500", width: "25%" };
+  if (!/[A-Z]/.test(p) || !/[0-9]/.test(p))
+    return { label: "Weak", color: "bg-orange-400", width: "50%" };
+  if (!/[^A-Za-z0-9]/.test(p))
+    return { label: "Fair", color: "bg-yellow-400", width: "75%" };
+  return { label: "Strong", color: "bg-green-500", width: "100%" };
+};
 
 export default function SignUpPage() {
   const router = useRouter();
-
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const passwordStrength = (p: string): { label: string; color: string; width: string } => {
-    if (p.length === 0) return { label: "", color: "", width: "0%" };
-    if (p.length < 6) return { label: "Too short", color: "bg-red-500", width: "25%" };
-    if (!/[A-Z]/.test(p) || !/[0-9]/.test(p)) return { label: "Weak", color: "bg-orange-400", width: "50%" };
-    if (!/[^A-Za-z0-9]/.test(p)) return { label: "Fair", color: "bg-yellow-400", width: "75%" };
-    return { label: "Strong", color: "bg-green-500", width: "100%" };
-  };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: { name: "", email: "", password: "", confirm: "" },
+  });
 
-  const strength = passwordStrength(form.password);
+  const passwordValue = watch("password");
+  const confirmValue = watch("confirm");
+  const strength = getPasswordStrength(passwordValue);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (form.password !== form.confirm) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit = async (values: SignUpFormValues) => {
+    setServerError(null);
 
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
+          name: values.name,
+          email: values.email,
+          password: values.password,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Something went wrong. Please try again.");
+        setServerError(data.error || "Something went wrong. Please try again.");
         return;
       }
 
       router.push("/dashboard");
     } catch {
-      setError("Network error. Please check your connection.");
-    } finally {
-      setLoading(false);
+      setServerError("Network error. Please check your connection.");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-6">
-
-        {/* Badge */}
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-400 text-sm font-medium backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>arcus.ai</span>
-          </div>
-        </div>
 
         <Card className="border border-border/50 bg-background/80 backdrop-blur-md shadow-xl">
           <CardHeader className="space-y-1 pb-4">
@@ -98,22 +96,22 @@ export default function SignUpPage() {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
               {/* Name */}
               <div className="space-y-1.5">
                 <Label htmlFor="name">Full name</Label>
                 <Input
                   id="name"
-                  name="name"
                   type="text"
                   placeholder="John Doe"
                   autoComplete="name"
-                  required
-                  value={form.name}
-                  onChange={handleChange}
                   className="h-10"
+                  {...register("name")}
                 />
+                {errors.name && (
+                  <p className="text-xs text-red-500">{errors.name.message}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -121,15 +119,15 @@ export default function SignUpPage() {
                 <Label htmlFor="email">Email address</Label>
                 <Input
                   id="email"
-                  name="email"
                   type="email"
                   placeholder="john@example.com"
                   autoComplete="email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
                   className="h-10"
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                )}
               </div>
 
               {/* Password */}
@@ -138,14 +136,11 @@ export default function SignUpPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Min 8 chars, 1 uppercase, 1 number"
                     autoComplete="new-password"
-                    required
-                    value={form.password}
-                    onChange={handleChange}
                     className="h-10 pr-10"
+                    {...register("password")}
                   />
                   <button
                     type="button"
@@ -153,12 +148,16 @@ export default function SignUpPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
 
                 {/* Password strength bar */}
-                {form.password.length > 0 && (
+                {passwordValue.length > 0 && (
                   <div className="space-y-1">
                     <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                       <div
@@ -169,6 +168,10 @@ export default function SignUpPage() {
                     <p className="text-xs text-muted-foreground">{strength.label}</p>
                   </div>
                 )}
+
+                {errors.password && (
+                  <p className="text-xs text-red-500">{errors.password.message}</p>
+                )}
               </div>
 
               {/* Confirm Password */}
@@ -177,14 +180,11 @@ export default function SignUpPage() {
                 <div className="relative">
                   <Input
                     id="confirm"
-                    name="confirm"
                     type={showConfirm ? "text" : "password"}
                     placeholder="Re-enter your password"
                     autoComplete="new-password"
-                    required
-                    value={form.confirm}
-                    onChange={handleChange}
                     className="h-10 pr-10"
+                    {...register("confirm")}
                   />
                   <button
                     type="button"
@@ -192,26 +192,36 @@ export default function SignUpPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                   >
-                    {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirm ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
-                {/* Confirm match indicator */}
-                {form.confirm.length > 0 && (
-                  <p className={`text-xs ${form.password === form.confirm ? "text-green-500" : "text-red-500"}`}>
-                    {form.password === form.confirm ? "Passwords match" : "Passwords do not match"}
-                  </p>
+
+                {/* Confirm match indicator — only show when no zod error yet */}
+                {confirmValue.length > 0 && !errors.confirm && (
+                  <p className="text-xs text-green-500">Passwords match</p>
+                )}
+                {errors.confirm && (
+                  <p className="text-xs text-red-500">{errors.confirm.message}</p>
                 )}
               </div>
 
-              {/* Error */}
-              {error && (
+              {/* Server error */}
+              {serverError && (
                 <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                  {error}
+                  {serverError}
                 </div>
               )}
 
-              <Button type="submit" className="w-full h-10 font-semibold" disabled={loading}>
-                {loading ? (
+              <Button
+                type="submit"
+                className="w-full h-10 font-semibold"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Creating account...
@@ -226,19 +236,15 @@ export default function SignUpPage() {
           <CardFooter className="pt-0">
             <p className="text-sm text-muted-foreground text-center w-full">
               Already have an account?{" "}
-              <Link href="/sign-in" className="text-primary hover:underline font-medium">
+              <Link
+                href="/sign-in"
+                className="text-primary hover:underline font-medium"
+              >
                 Sign in
               </Link>
             </p>
           </CardFooter>
         </Card>
-
-        <p className="text-xs text-muted-foreground text-center">
-          By creating an account you agree to our{" "}
-          <Link href="/terms" className="underline hover:text-foreground">Terms</Link>
-          {" "}and{" "}
-          <Link href="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>
-        </p>
       </div>
     </div>
   );

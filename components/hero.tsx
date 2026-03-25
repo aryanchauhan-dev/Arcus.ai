@@ -6,7 +6,11 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { Sparkles } from "lucide-react";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  isLoggedIn: boolean;
+}
+
+const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
   const imageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -25,11 +29,11 @@ const HeroSection = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
   return (
     <section className="w-full pt-36 md:pt-48 pb-10 space-y-16">
       <div className="space-y-6 text-center">
@@ -56,7 +60,9 @@ const HeroSection = () => {
 
       <div className="flex flex-col items-center gap-3 pt-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href="/dashboard">
+
+          {/* Redirects based on login state */}
+          <Link href={isLoggedIn ? "/dashboard" : "/sign-in"}>
             <Button
               size="lg"
               className="px-7 py-4 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
@@ -64,6 +70,7 @@ const HeroSection = () => {
               Get Started Free
             </Button>
           </Link>
+
           <Link href="#how-it-works">
             <Button
               size="lg"
@@ -74,12 +81,21 @@ const HeroSection = () => {
             </Button>
           </Link>
         </div>
+
+        {/* Show different micro-copy based on state */}
+        <p className="text-sm text-muted-foreground">
+          {isLoggedIn ? (
+            <>Welcome back — <span className="text-foreground font-medium">continue your journey</span></>
+          ) : (
+            <>Join <span className="text-foreground font-medium">10,000+</span> professionals growing their careers with AI</>
+          )}
+        </p>
       </div>
 
       <div className="hero-image-wrapper mt-5 md:mt-0">
         <div ref={imageRef} className="hero-image">
           <Image
-            src={"/banner.jpeg"}
+            src="/banner.jpeg"
             width={1280}
             height={720}
             alt="AI career coach dashboard preview"

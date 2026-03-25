@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,64 +17,59 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Eye, EyeOff, Sparkles } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+
+const signInSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type SignInFormValues = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
   const router = useRouter();
-
-  const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError(null);
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { email: "", password: "" },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const onSubmit = async (values: SignInFormValues) => {
+    setServerError(null);
 
     try {
-      const res = await fetch("/api/auth/signin", {
+      const res = await fetch("/api/auth/sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password: form.password }),
+        body: JSON.stringify({ email: values.email, password: values.password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // Handle rate limit separately
         if (res.status === 429) {
-          setError("Too many attempts. Please wait 15 minutes and try again.");
+          setServerError("Too many attempts. Please wait 15 minutes and try again.");
           return;
         }
-        setError(data.error || "Something went wrong. Please try again.");
+        setServerError(data.error || "Something went wrong. Please try again.");
         return;
       }
 
       router.push("/dashboard");
     } catch {
-      setError("Network error. Please check your connection.");
-    } finally {
-      setLoading(false);
+      setServerError("Network error. Please check your connection.");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-6">
-
-        {/* Badge */}
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-400 text-sm font-medium backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>arcus.ai</span>
-          </div>
-        </div>
 
         <Card className="border border-border/50 bg-background/80 backdrop-blur-md shadow-xl">
           <CardHeader className="space-y-1 pb-4">
@@ -84,22 +82,22 @@ export default function SignInPage() {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
               {/* Email */}
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email address</Label>
                 <Input
                   id="email"
-                  name="email"
                   type="email"
                   placeholder="john@example.com"
                   autoComplete="email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
                   className="h-10"
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                )}
               </div>
 
               {/* Password */}
@@ -116,14 +114,11 @@ export default function SignInPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     autoComplete="current-password"
-                    required
-                    value={form.password}
-                    onChange={handleChange}
                     className="h-10 pr-10"
+                    {...register("password")}
                   />
                   <button
                     type="button"
@@ -138,21 +133,24 @@ export default function SignInPage() {
                     )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-xs text-red-500">{errors.password.message}</p>
+                )}
               </div>
 
-              {/* Error */}
-              {error && (
+              {/* Server error */}
+              {serverError && (
                 <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                  {error}
+                  {serverError}
                 </div>
               )}
 
               <Button
                 type="submit"
                 className="w-full h-10 font-semibold"
-                disabled={loading}
+                disabled={isSubmitting}
               >
-                {loading ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Signing in...
