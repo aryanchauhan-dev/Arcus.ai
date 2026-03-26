@@ -9,7 +9,7 @@ export async function getCurrentUser() {
     if (!token) return null;
 
     const user = verifyAccessToken(token);
-    return user; // returns { id, email } or null if token is invalid/expired
+    return user; 
   } catch {
     return null;
   }
