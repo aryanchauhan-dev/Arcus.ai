@@ -15,8 +15,16 @@ import {
   DropdownMenuItem
 } from "./ui/dropdown-menu";
 import { SignOutButton } from "./signout-button";
+import { cookies } from "next/headers";
 
-const Header = async() => {
+const Header = async () => {
+
+  // 🧠 Step 1: Get cookies
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+
+  // 🧠 Step 2: Check login state
+  const isLoggedIn = !!accessToken;
 
   return (
     <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-50 supports-backdrop-filter:bg-background/60">
@@ -33,14 +41,14 @@ const Header = async() => {
         </Link>
 
         <div className="flex items-center space-x-2 md:space-x-4">
-          {(
-            <>
-              <Link href="/dashboard">
-              <Button variant={"outline"} className="cursor-pointer">
-                <LayoutDashboard className="h-4 w-3 mr-2" />
-                <span className="hidden md:block">Industry Insights</span>
-              </Button>
-            </Link>
+          
+          {/* 🔹 Protected / Common Links */}
+          <Link href="/dashboard">
+            <Button variant={"outline"} className="cursor-pointer">
+              <LayoutDashboard className="h-4 w-3 mr-2" />
+              <span className="hidden md:block">Industry Insights</span>
+            </Button>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -50,25 +58,22 @@ const Header = async() => {
                 <ChevronDown className="h-4 w-3" />
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent>
               <DropdownMenuItem>
-                <Link
-                  href={"/resume-builder"}
-                  className="flex items-center gap-2"
-                >
+                <Link href={"/resume-builder"} className="flex items-center gap-2">
                   <FileTextIcon className="h-4 w-3" />
                   <span>Build Resume</span>
                 </Link>
               </DropdownMenuItem>
+
               <DropdownMenuItem>
-                <Link
-                  href={"/ai-cover-letter"}
-                  className="flex items-center gap-2"
-                >
+                <Link href={"/ai-cover-letter"} className="flex items-center gap-2">
                   <PenBox className="h-4 w-3" />
                   <span>Cover Letter</span>
                 </Link>
               </DropdownMenuItem>
+
               <DropdownMenuItem>
                 <Link href={"/interview"} className="flex items-center gap-2">
                   <FileTextIcon className="h-4 w-3" />
@@ -77,15 +82,17 @@ const Header = async() => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-            </>
-          )}
 
-          
-            <SignOutButton variant="outline"/>
-
-            <Link href={"sign-in"}>
-              <Button variant={"outline"} className="cursor-pointer">SignIn</Button>
+          {/* 🔥 Conditional Rendering */}
+          {isLoggedIn ? (
+            <SignOutButton variant="outline" />
+          ) : (
+            <Link href={"/sign-in"}>
+              <Button variant={"outline"} className="cursor-pointer">
+                Sign In
+              </Button>
             </Link>
+          )}
 
         </div>
       </nav>

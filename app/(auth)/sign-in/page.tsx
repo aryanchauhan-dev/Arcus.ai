@@ -18,9 +18,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { signinSchema } from "@/schemas/auth";
+import { signinFrontendSchema } from "@/schemas/auth";
 
-type SignInFormValues = z.infer<typeof signinSchema>;
+type SignInFormValues = z.infer<typeof signinFrontendSchema>;
 
 export default function SignInPage() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function SignInPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignInFormValues>({
-    resolver: zodResolver(signinSchema),
+    resolver: zodResolver(signinFrontendSchema),
     defaultValues: { email: "", password: "" },
   });
 
@@ -43,21 +43,28 @@ export default function SignInPage() {
       const res = await fetch("/api/auth/sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: values.email, password: values.password }),
+        credentials: "include", // ✅ already correct
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({})); // 🔥 FIX
 
       if (!res.ok) {
         if (res.status === 429) {
           setServerError("Too many attempts. Please wait 15 minutes and try again.");
           return;
         }
-        setServerError(data.error || "Something went wrong. Please try again.");
+        setServerError(data.error || "Invalid credentials");
         return;
       }
 
+      // ✅ Redirect + re-render
       router.push("/dashboard");
+      router.refresh(); // 🔥 IMPORTANT
+
     } catch {
       setServerError("Network error. Please check your connection.");
     }
@@ -107,6 +114,7 @@ export default function SignInPage() {
                     Forgot password?
                   </Link>
                 </div>
+
                 <div className="relative">
                   <Input
                     id="password"
@@ -119,7 +127,7 @@ export default function SignInPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
                     tabIndex={-1}
                   >
                     {showPassword ? (
@@ -129,6 +137,7 @@ export default function SignInPage() {
                     )}
                   </button>
                 </div>
+
                 {errors.password && (
                   <p className="text-xs text-red-500">{errors.password.message}</p>
                 )}
@@ -161,10 +170,7 @@ export default function SignInPage() {
           <CardFooter className="pt-0">
             <p className="text-sm text-muted-foreground text-center w-full">
               Don&apos;t have an account?{" "}
-              <Link
-                href="/sign-up"
-                className="text-primary hover:underline font-medium"
-              >
+              <Link href="/sign-up" className="text-primary hover:underline font-medium">
                 Create one free
               </Link>
             </p>

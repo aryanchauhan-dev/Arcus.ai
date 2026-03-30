@@ -17,10 +17,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { z } from "zod"
-import { signupSchema } from "@/schemas/auth";
+import { z } from "zod";
+import { signupFrontendSchema } from "@/schemas/auth";
 
-type SignUpFormValues = z.infer<typeof signupSchema>;
+type SignUpFormValues = z.infer<typeof signupFrontendSchema>;
 
 const getPasswordStrength = (
   p: string
@@ -46,7 +46,7 @@ export default function SignUpPage() {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<SignUpFormValues>({
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(signupFrontendSchema),
     defaultValues: { name: "", email: "", password: "", confirm: "" },
   });
 
@@ -61,6 +61,7 @@ export default function SignUpPage() {
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // 🔥 FIX 1
         body: JSON.stringify({
           name: values.name,
           email: values.email,
@@ -68,7 +69,7 @@ export default function SignUpPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({})); // 🔥 FIX 2
 
       if (!res.ok) {
         setServerError(data.error || "Something went wrong. Please try again.");
@@ -76,6 +77,7 @@ export default function SignUpPage() {
       }
 
       router.push("/dashboard");
+      router.refresh(); // 🔥 FIX 3
     } catch {
       setServerError("Network error. Please check your connection.");
     }
@@ -137,7 +139,7 @@ export default function SignUpPage() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Min 8 chars, 1 uppercase, 1 number"
+                    placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special char"
                     autoComplete="new-password"
                     className="h-10 pr-10"
                     {...register("password")}
@@ -145,18 +147,13 @@ export default function SignUpPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
                     tabIndex={-1}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
 
-                {/* Password strength bar */}
                 {passwordValue.length > 0 && (
                   <div className="space-y-1">
                     <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
@@ -189,21 +186,18 @@ export default function SignUpPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirm((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
                     tabIndex={-1}
                   >
-                    {showConfirm ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
+                    {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
 
-                {/* Confirm match indicator — only show when no zod error yet */}
-                {confirmValue.length > 0 && !errors.confirm && (
+                {/* ✅ FIXED MATCH CHECK */}
+                {confirmValue.length > 0 && passwordValue === confirmValue && (
                   <p className="text-xs text-green-500">Passwords match</p>
                 )}
+
                 {errors.confirm && (
                   <p className="text-xs text-red-500">{errors.confirm.message}</p>
                 )}
@@ -236,10 +230,7 @@ export default function SignUpPage() {
           <CardFooter className="pt-0">
             <p className="text-sm text-muted-foreground text-center w-full">
               Already have an account?{" "}
-              <Link
-                href="/sign-in"
-                className="text-primary hover:underline font-medium"
-              >
+              <Link href="/sign-in" className="text-primary hover:underline font-medium">
                 Sign in
               </Link>
             </p>

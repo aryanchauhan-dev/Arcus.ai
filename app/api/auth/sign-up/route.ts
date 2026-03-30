@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { signupSchema } from "@/schemas/auth";
+import { signupBackendSchema } from "@/schemas/auth";
 import bcrypt from "bcryptjs";
 import { signAccessToken, signRefreshToken } from "@/lib/auth";
 import { hashToken } from "@/lib/hash";
@@ -14,9 +14,10 @@ export async function POST(req: Request) {
   if (!success) return new Response("Too many requests", { status: 429 });
 
   const body = await req.json();
-  const parsed = signupSchema.safeParse(body);
+  const parsed = signupBackendSchema.safeParse(body);
 
   if (!parsed.success) {
+    console.log(parsed.error);
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 

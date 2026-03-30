@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { signinSchema } from "@/schemas/auth";
+import { signinBackendSchema } from "@/schemas/auth";
 import bcrypt from "bcryptjs";
 import { signAccessToken, signRefreshToken } from "@/lib/auth";
 import { hashToken } from "@/lib/hash";
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
   const body = await req.json();
 
-  const parsed = signinSchema.safeParse(body);
+  const parsed = signinBackendSchema.safeParse(body);
   if (!parsed.success) return new Response("Invalid input", { status: 400 });
 
   const { email, password } = parsed.data;
