@@ -1,79 +1,55 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashedPassword, validatePasswordStrength } from "@/lib/password";
-import { signAccessToken, signRefreshToken } from "@/lib/jwt";
+import { signupSchema } from "@/schemas/auth";
+import bcrypt from "bcryptjs";
+import { signAccessToken, signRefreshToken } from "@/lib/auth";
+import { hashToken } from "@/lib/hash";
+import { signupLimiter } from "@/lib/rate-limit";
+import { NextResponse } from "next/server";
 
-export async function POST(req: Request){
-    try {
-        const {email, password, name} = await req.json();
-        if(!email || !password){
-            return NextResponse.json({
-                error: "Email and Password required."
-            }, {status: 400});
-        }
+export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
 
-        const passwordError = validatePasswordStrength(password);
-        if(passwordError){
-            return NextResponse.json({
-                error: passwordError
-            }, {status: 400})
-        }
+  // 🚧 Rate limit (pehle hi block karo)
+  const { success } = await signupLimiter.limit(ip);
+  if (!success) return new Response("Too many requests", { status: 429 });
 
-        const existing = await prisma.user.findUnique({
-            where: {
-                email
-            }
-        });
-        if(existing){
-            return NextResponse.json({
-                error: "Invalid Credentials"
-            }, {status: 400});
-        }
+  const body = await req.json();
+  const parsed = signupSchema.safeParse(body);
 
-        const passwordHash = await hashedPassword(password);
-        const user = await prisma.user.create({
-            data: {
-                email,
-                passwordHash,
-                name
-            }
-        });
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
 
-        const accessToken = signAccessToken({id: user.id , email: user.email});
-        const refreshToken = signRefreshToken({id: user.id});
-        await prisma.session.create({
-            data:{
-                userId: user.id,
-                token: refreshToken,
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
-                userAgent: req.headers.get("user-agent") ?? undefined
-            },
-        });
+  const { name, email, password } = parsed.data;
 
-        const response = NextResponse.json({success: true});
+  // 🔍 check user
+  const exists = await prisma.user.findUnique({ where: { email } });
+  if (exists) return NextResponse.json({ error: "User exists" }, { status: 400 });
 
-        response.cookies.set("access_token", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 15,
-            path : "/"
-        });
+  // 🔐 hash password
+  const hashed = await bcrypt.hash(password, 12);
 
-        response.cookies.set("refresh_token", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/"
-        });
+  const user = await prisma.user.create({
+    data: { name, email, passwordHash: hashed },
+  });
 
-        return response;
+  // 🔑 tokens
+  const accessToken = await signAccessToken(user.id);
+  const refreshToken = await signRefreshToken(user.id);
 
-    } catch (error) {
-        return NextResponse.json({
-            error: "Internal Server Error"
-        }, {status: 500})
-    }
+  // 🔥 store hashed refresh token
+  await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  const res = NextResponse.json({ success: true });
+
+  res.cookies.set("accessToken", accessToken, { httpOnly: true, maxAge: 900 });
+  res.cookies.set("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 86400 });
+
+  return res;
 }

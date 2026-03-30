@@ -18,9 +18,9 @@ import {
 } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod"
-import { signUpSchema } from "@/schemas/sign-up.schema";
+import { signupSchema } from "@/schemas/auth";
 
-type SignUpFormValues = z.infer<typeof signUpSchema>;
+type SignUpFormValues = z.infer<typeof signupSchema>;
 
 const getPasswordStrength = (
   p: string
@@ -46,7 +46,7 @@ export default function SignUpPage() {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<SignUpFormValues>({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(signupSchema),
     defaultValues: { name: "", email: "", password: "", confirm: "" },
   });
 

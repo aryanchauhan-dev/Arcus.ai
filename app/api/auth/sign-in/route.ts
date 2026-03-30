@@ -1,80 +1,47 @@
-import { signAccessToken, signRefreshToken } from "@/lib/jwt";
-import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit, logLoginAttempt } from "@/lib/rateLimit";
+import { signinSchema } from "@/schemas/auth";
+import bcrypt from "bcryptjs";
+import { signAccessToken, signRefreshToken } from "@/lib/auth";
+import { hashToken } from "@/lib/hash";
+import { signinLimiter } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
+export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const body = await req.json();
 
-export async function POST(req: Request){
-    try {
-        const {email, password} = await req.json();
-        const ipAddress = req.headers.get("x-forwarded-for") ?? undefined
+  const parsed = signinSchema.safeParse(body);
+  if (!parsed.success) return new Response("Invalid input", { status: 400 });
 
-        const isBlocked = await checkRateLimit(email, ipAddress ?? "");
-        if(isBlocked){
-            return NextResponse.json({
-                error: "Too many attempts. Try again in 15 minutes."
-            }, {status: 429});
-        }
+  const { email, password } = parsed.data;
 
-        const user = await prisma.user.findUnique({
-            where: {
-                email
-            }
-        });
-        if(!user){
-            await logLoginAttempt(email, false, ipAddress);
-            return NextResponse.json({
-                error: "Invalid Credentials"
-            }, {status: 401})
-        }
+  // 🚧 Rate limit (IP + email)
+  const key = `${ip}-${email}`;
+  const { success } = await signinLimiter.limit(key);
+  if (!success) return new Response("Too many attempts", { status: 429 });
 
-        const valid = await verifyPassword(password, user.passwordHash);
-        if(!valid){
-            await logLoginAttempt(email, false, ipAddress, user.id);
-            return NextResponse.json({
-                error: "Invalid Credentials"
-            }, {status: 401})
-        }
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return new Response("Invalid credentials", { status: 401 });
 
-        await logLoginAttempt(email, true, ipAddress, user.id);
+  const match = await bcrypt.compare(password, user.passwordHash);
+  if (!match) return new Response("Invalid credentials", { status: 401 });
 
-        const accessToken = signAccessToken({id: user.id, email: user.email});
-        const refreshToken = signRefreshToken({id: user.id});
+  const accessToken = await signAccessToken(user.id);
+  const refreshToken = await signRefreshToken(user.id);
 
-        await prisma.session.create({
-            data: {
-                userId: user.id,
-                token: refreshToken,
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                ipAddress,
-                userAgent: req.headers.get("user-agent") ?? undefined
-            },
-        });
+  // 🔄 rotation → new session
+  await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + 7 * 86400000),
+    },
+  });
 
-        const response = NextResponse.json({success: true});
+  const res = NextResponse.json({ success: true });
 
-        response.cookies.set("access_token", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 15,
-            path: "/"
-        });
+  res.cookies.set("accessToken", accessToken, { httpOnly: true, maxAge: 900 });
+  res.cookies.set("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 86400 });
 
-        response.cookies.set("refresh_token", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/"
-        });
-
-        return response;
-
-    } catch (error) {
-        return NextResponse.json({
-            error: "Internal Server Error"
-        }, {status: 500});
-    }
+  return res;
 }

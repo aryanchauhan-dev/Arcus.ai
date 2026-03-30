@@ -18,13 +18,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { signinSchema } from "@/schemas/auth";
 
-const signInSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type SignInFormValues = z.infer<typeof signInSchema>;
+type SignInFormValues = z.infer<typeof signinSchema>;
 
 export default function SignInPage() {
   const router = useRouter();
@@ -36,7 +32,7 @@ export default function SignInPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignInFormValues>({
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(signinSchema),
     defaultValues: { email: "", password: "" },
   });
 

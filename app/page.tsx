@@ -12,16 +12,14 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";  // ✅ added
+import Header from "@/components/header"
 
 export default async function Home() {   // ✅ made async
-  const user = await getCurrentUser();   // ✅ reads cookie on server
-  const isLoggedIn = !!user;             // ✅ converts to boolean
 
   return (
     <div>
+      <Header/>
       <div className="grid-background" />
-      <HeroSection isLoggedIn={isLoggedIn} />
 
       <section className="w-full py-12 md:py-24 lg:py-32 bg-background/60">
         <div className="container mx-auto px-4 md:px-6">
@@ -125,7 +123,7 @@ export default async function Home() {   // ✅ made async
             <p className="mx-auto max-w-2xl text-primary-foreground/80 md:text-xl mt-4">
               Level up your career preparation with AI-powered tools built for modern professionals.
             </p>
-            <Link href={isLoggedIn ? "/dashboard" : "/sign-in"}>
+            <Link href={"/dashboard"}>
               <Button size="lg" variant="secondary" className="h-11 mt-6 animate-bounce">
                 Start Your Journey Today
                 <ArrowRight className="ml-2 h-4 w-4" />

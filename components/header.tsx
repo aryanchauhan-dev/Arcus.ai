@@ -14,12 +14,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from "./ui/dropdown-menu";
-import { getCurrentUser } from "@/lib/auth";
 import { SignOutButton } from "./signout-button";
 
 const Header = async() => {
-  const user = await getCurrentUser();
-  const isLoggedOn = !!user;
 
   return (
     <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-50 supports-backdrop-filter:bg-background/60">
@@ -36,7 +33,7 @@ const Header = async() => {
         </Link>
 
         <div className="flex items-center space-x-2 md:space-x-4">
-          {isLoggedOn && (
+          {(
             <>
               <Link href="/dashboard">
               <Button variant={"outline"} className="cursor-pointer">
@@ -83,13 +80,12 @@ const Header = async() => {
             </>
           )}
 
-          {isLoggedOn ?(
+          
             <SignOutButton variant="outline"/>
-          ): (
+
             <Link href={"sign-in"}>
               <Button variant={"outline"} className="cursor-pointer">SignIn</Button>
             </Link>
-          )}
 
         </div>
       </nav>
