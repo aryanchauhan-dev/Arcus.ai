@@ -1,26 +1,35 @@
 import { z } from "zod";
 
 export const onboardingSchema = z.object({
-  industry: z.string().min(1, "Please select an Industry"),
+  industry: z
+    .string()
+    .min(1, "Industry is required"),
 
-  subIndustry: z.string().min(1, "Please select a Specialization"),
-
-  bio: z.string().max(500).optional(),
+  subIndustry: z
+    .string()
+    .min(1, "Specialization is required"),
 
   experience: z
+    .coerce
+    .number()
+    .min(0, "Experience cannot be negative")
+    .max(50, "Experience too large"),
+
+  skills: z
     .string()
-    .min(1, "Experience is required")
-    .transform((val) => Number(val))
-    .pipe(
-      z
-        .number()
-        .min(0, "Experience must be at least 0")
-        .max(50, "Experience cannot exceed 50")
+    .min(1, "At least one skill is required")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
     ),
 
-  skills: z.string().transform((val) =>
-    val
-      ? val.split(",").map((skill) => skill.trim()).filter(Boolean)
-      : []
-  ),
+  bio: z
+    .string()
+    .max(500, "Bio too long")
+    .optional(),
 });
+
+// 🔥 Type inference (VERY IMPORTANT)
+export type OnboardingFormData = z.infer<typeof onboardingSchema>;
