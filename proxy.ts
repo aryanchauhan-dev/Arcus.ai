@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "./lib/auth"; // jose-based verify
+import { verifyToken } from "./lib/auth";
 
-// 🔒 Protected routes list
 const protectedRoutes = [
   "/dashboard",
   "/resume-builder",
@@ -12,37 +11,58 @@ const protectedRoutes = [
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // 🔍 Check if route is protected
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
-  // 👉 Public route → allow
-  if (!isProtected) {
-    return NextResponse.next();
-  }
+  if (!isProtected) return NextResponse.next();
 
-  // 🍪 Get access token from cookie
-  const token = req.cookies.get("accessToken")?.value;
+  const accessToken = req.cookies.get("accessToken")?.value;
 
-  // ❌ No token → redirect
-  if (!token) {
+  if (!accessToken) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
-  // 🔐 Verify token (IMPORTANT: async)
-  const payload = await verifyToken(token);
+  const payload = await verifyToken(accessToken);
 
-  // ❌ Invalid/expired token → redirect
+  // 🔥 REFRESH LOGIC
   if (!payload) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
+
+    const refreshToken = req.cookies.get("refreshToken")?.value;
+
+    if (!refreshToken) {
+      return NextResponse.redirect(new URL("/sign-in", req.url));
+    }
+
+    try {
+      const refreshRes = await fetch(new URL("/api/auth/refresh", req.url), {
+        method: "POST",
+        headers: {
+          cookie: req.headers.get("cookie") || "",
+        },
+      });
+
+      if (!refreshRes.ok) {
+        throw new Error("Refresh failed");
+      }
+
+      const response = NextResponse.next();
+
+      const setCookie = refreshRes.headers.get("set-cookie");
+      if (setCookie) {
+        response.headers.set("set-cookie", setCookie);
+      }
+
+      return response;
+
+    } catch (err) {
+      return NextResponse.redirect(new URL("/sign-in", req.url));
+    }
   }
 
-  // 🧠 Attach user info to headers (for downstream use)
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-user-id", payload.userId);
 
-  // ✅ Allow request
   return NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -50,7 +70,6 @@ export async function proxy(req: NextRequest) {
   });
 }
 
-// 🎯 Apply middleware only on these routes
 export const config = {
   matcher: [
     "/dashboard/:path*",

@@ -15,7 +15,6 @@ export async function POST(req: Request) {
 
   const { email, password } = parsed.data;
 
-  // 🚧 Rate limit (IP + email)
   const key = `${ip}-${email}`;
   const { success } = await signinLimiter.limit(key);
   if (!success) return new Response("Too many attempts", { status: 429 });
@@ -29,7 +28,6 @@ export async function POST(req: Request) {
   const accessToken = await signAccessToken(user.id);
   const refreshToken = await signRefreshToken(user.id);
 
-  // 🔄 rotation → new session
   await prisma.session.create({
     data: {
       userId: user.id,
@@ -40,8 +38,19 @@ export async function POST(req: Request) {
 
   const res = NextResponse.json({ success: true });
 
-  res.cookies.set("accessToken", accessToken, { httpOnly: true, maxAge: 900 });
-  res.cookies.set("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 86400 });
+  res.cookies.set("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 60 * 15,
+  });
+
+  res.cookies.set("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 7 * 86400,
+  });
 
   return res;
 }

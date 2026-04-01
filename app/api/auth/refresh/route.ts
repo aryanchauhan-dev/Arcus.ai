@@ -5,12 +5,16 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST() {
+
   const cookieStore = await cookies();
   const token = cookieStore.get("refreshToken")?.value;
 
-  if (!token) return new Response("Unauthorized", { status: 401 });
+  if (!token) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   const payload = await verifyToken(token);
+
   if (!payload) return new Response("Invalid token", { status: 401 });
 
   const hashed = hashToken(token);
@@ -23,7 +27,7 @@ export async function POST() {
     return new Response("Session invalid", { status: 401 });
   }
 
-  // 🔄 ROTATION
+  // 🔄 ROTATION (revoke old)
   await prisma.session.update({
     where: { id: session.id },
     data: { isRevoked: true },
@@ -32,18 +36,39 @@ export async function POST() {
   const newAccess = await signAccessToken(payload.userId);
   const newRefresh = await signRefreshToken(payload.userId);
 
-  await prisma.session.create({
-    data: {
-      userId: payload.userId,
-      token: hashToken(newRefresh),
-      expiresAt: new Date(Date.now() + 7 * 86400000),
-    },
-  });
+  const newHashed = hashToken(newRefresh);
+
+  // 🔥 FIX: prevent duplicate crash
+  try {
+    await prisma.session.create({
+      data: {
+        userId: payload.userId,
+        token: newHashed,
+        expiresAt: new Date(Date.now() + 7 * 86400000),
+      },
+    });
+  } catch (err: any) {
+    if (err.code === "P2002") {
+    } else {
+      throw err;
+    }
+  }
 
   const res = NextResponse.json({ success: true });
 
-  res.cookies.set("accessToken", newAccess, { httpOnly: true, maxAge: 900 });
-  res.cookies.set("refreshToken", newRefresh, { httpOnly: true, maxAge: 7 * 86400 });
+  res.cookies.set("accessToken", newAccess, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 60 * 15,
+  });
+
+  res.cookies.set("refreshToken", newRefresh, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 7 * 86400,
+  });
 
   return res;
 }

@@ -11,20 +11,22 @@ export async function updateUser(data: {
   bio?: string;
   skills?: string[];
 }) {
-
-  // 🔴 1. Get user from cookies
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
-  if (!token) throw new Error("Unauthorized");
+  if (!token) {
+  throw new Error("Session expired. Please retry.");
+}
 
   const payload = await verifyToken(token);
-  if(!payload){
-    throw new Error("Unauthorized");
+
+  // 🔥 FIX: don't hard fail immediately (refresh might have just happened)
+  if (!payload) {
+    throw new Error("Session expired. Please retry.");
   }
+
   const userId = payload.userId;
 
-  // 🔴 2. Check user
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -33,15 +35,12 @@ export async function updateUser(data: {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-
-      // 🔹 3. Check if industry exists
       let industryRecord = await tx.industryInsight.findUnique({
         where: {
           industry: data.industry,
         },
       });
 
-      // 🔥 4. If NOT → create using incoming data
       if (!industryRecord) {
         industryRecord = await tx.industryInsight.create({
           data: {
@@ -58,7 +57,6 @@ export async function updateUser(data: {
         });
       }
 
-      // 🔹 5. Update user
       const updatedUser = await tx.user.update({
         where: {
           id: user.id,
@@ -79,29 +77,27 @@ export async function updateUser(data: {
     return result.updatedUser;
 
   } catch (error: any) {
-    console.error("Error updating user:", error.message);
     throw new Error("Failed to update profile");
   }
 }
 
 export async function getUserOnboardingStatus() {
-
-  // 🔴 1. Get user from cookies
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return { isOnboarded: false }; // user not logged in
+    return { isOnboarded: false };
   }
 
-  // 🔴 2. Verify token
   const payload = await verifyToken(token);
-  if(!payload){
-    throw new Error("Unauthorized");
+
+  // 🔥 FIX: graceful fallback instead of crash
+  if (!payload) {
+    return { isOnboarded: false };
   }
+
   const userId = payload.userId;
 
-  // 🔴 3. Fetch user
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -113,7 +109,6 @@ export async function getUserOnboardingStatus() {
     return { isOnboarded: false };
   }
 
-  // 🔥 4. Determine onboarding
   return {
     isOnboarded: !!user.industry,
   };
