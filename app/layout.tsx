@@ -37,7 +37,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Header/>
-            <main className="min-h-screen">{children}</main>
+            <main className="min-h-screen pt-20 px-5">{children}</main>
             <footer className="bg-muted/50 py-12">
               <div className="container mx-auto px-4 text-center text-gray-200">
                 <p>✨ Made with passion and creativity 💖 — Made by Aryan Chauhan</p>

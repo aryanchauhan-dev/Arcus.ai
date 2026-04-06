@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { generateAIInsights } from "./dashboard"; // ✅ Gemini structure unchanged
 
+// =======================
+// UPDATE USER
+// =======================
 export async function updateUser(data: {
   industry: string;
   experience?: number;
@@ -15,12 +19,10 @@ export async function updateUser(data: {
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-  throw new Error("Session expired. Please retry.");
-}
+    throw new Error("Session expired. Please retry.");
+  }
 
   const payload = await verifyToken(token);
-
-  // 🔥 FIX: don't hard fail immediately (refresh might have just happened)
   if (!payload) {
     throw new Error("Session expired. Please retry.");
   }
@@ -34,82 +36,93 @@ export async function updateUser(data: {
   if (!user) throw new Error("User not found");
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      let industryRecord = await tx.industryInsight.findUnique({
-        where: {
-          industry: data.industry,
-        },
-      });
+    // 🔥 1. Check existing insight
+    let industryRecord = await prisma.industryInsight.findUnique({
+      where: { industry: data.industry },
+    });
 
-      if (!industryRecord) {
-        industryRecord = await tx.industryInsight.create({
+    // 🔥 2. Generate if missing (AI OUTSIDE DB critical path)
+    if (!industryRecord) {
+      console.log(`🚀 No insights for ${data.industry}, generating...`);
+
+      let insights;
+
+      try {
+        insights = await generateAIInsights(data.industry);
+      } catch (err) {
+        console.error("⚠️ AI failed, using fallback");
+
+        insights = {
+          salaryRanges: [],
+          growthRate: 0,
+          demandLevel: "MEDIUM",
+          marketOutlook: "NEUTRAL",
+          topSkills: [],
+          keyTrends: [],
+          recommendedSkills: [],
+        };
+      }
+
+      // 🔥 IMPORTANT: race-condition safe create
+      try {
+        industryRecord = await prisma.industryInsight.create({
           data: {
             industry: data.industry,
-            salaryRanges: [],
-            growthRate: 0,
-            demandLevel: "MEDIUM",
-            marketOutlook: "NEUTRAL",
-            topSkills: [],
-            keyTrends: [],
-            recommendedSkills: [],
+            ...insights,
             nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           },
         });
+      } catch (err: any) {
+        // 👉 If another request already created it (duplicate race)
+        if (err.code === "P2002") {
+          industryRecord = await prisma.industryInsight.findUnique({
+            where: { industry: data.industry },
+          });
+        } else {
+          throw err;
+        }
       }
+    }
 
-      const updatedUser = await tx.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          industry: industryRecord.industry,
-          experience: data.experience,
-          bio: data.bio,
-          skills: data.skills,
-        },
-      });
-
-      return { updatedUser, industryRecord };
+    // 🔥 3. Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        industry: industryRecord!.industry,
+        experience: data.experience,
+        bio: data.bio,
+        skills: data.skills,
+      },
     });
 
     revalidatePath("/");
 
-    return result.updatedUser;
+    return updatedUser;
 
   } catch (error: any) {
+    console.error("❌ Profile update failed:", error);
     throw new Error("Failed to update profile");
   }
 }
 
+// =======================
+// GET ONBOARDING STATUS
+// =======================
 export async function getUserOnboardingStatus() {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
-  if (!token) {
-    return { isOnboarded: false };
-  }
+  if (!token) return { isOnboarded: false };
 
   const payload = await verifyToken(token);
-
-  // 🔥 FIX: graceful fallback instead of crash
-  if (!payload) {
-    return { isOnboarded: false };
-  }
-
-  const userId = payload.userId;
+  if (!payload) return { isOnboarded: false };
 
   const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      industry: true,
-    },
+    where: { id: payload.userId },
+    select: { industry: true },
   });
 
-  if (!user) {
-    return { isOnboarded: false };
-  }
-
   return {
-    isOnboarded: !!user.industry,
+    isOnboarded: !!user?.industry,
   };
 }
