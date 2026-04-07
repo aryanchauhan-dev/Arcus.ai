@@ -1,3 +1,6 @@
 import { Inngest } from "inngest";
 
-export const inngest = new Inngest({id: "skillExa", name: "SkillExa"});
+export const inngest = new Inngest({
+  id: "arcus-ai", 
+  name: "Arcus AI",
+});

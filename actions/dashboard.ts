@@ -5,12 +5,46 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
 import { GoogleGenAI } from "@google/genai";
 
-// ✅ Gemini setup (as per your requirement)
+// ✅ Gemini setup
 const ai = new GoogleGenAI({});
+
+// =======================
+// 🔹 TYPES (OPTIONAL BUT RECOMMENDED)
+// =======================
+
+type SalaryRange = {
+  role: string;
+  min: number;
+  max: number;
+  median: number;
+  location: string;
+};
+
+// =======================
+// 🔹 HELPER: Transform DB → Safe Type
+// =======================
+
+function transformInsights(raw: any) {
+  const salaryRanges: SalaryRange[] = Array.isArray(raw.salaryRanges)
+    ? raw.salaryRanges.map((item: any) => ({
+        role: item?.role || "",
+        min: item?.min || 0,
+        max: item?.max || 0,
+        median: item?.median || 0,
+        location: item?.location || "",
+      }))
+    : [];
+
+  return {
+    ...raw,
+    salaryRanges,
+  };
+}
 
 // =======================
 // 🔹 AI GENERATOR
 // =======================
+
 export const generateAIInsights = async (industry: string) => {
   console.log("🧠 [Gemini] Generating insights for:", industry);
 
@@ -38,7 +72,7 @@ IMPORTANT:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", // ✅ as per your requirement
+      model: "gemini-3-flash-preview",
       contents: prompt,
     });
 
@@ -48,7 +82,6 @@ IMPORTANT:
       throw new Error("Empty AI response");
     }
 
-    // 🔥 Clean response
     const cleaned = text
       .replace(/```json/g, "")
       .replace(/```/g, "")
@@ -63,7 +96,7 @@ IMPORTANT:
       throw new Error("AI returned invalid JSON");
     }
 
-    // ✅ Basic validation (VERY IMPORTANT)
+    // ✅ Basic validation
     if (
       !parsed.salaryRanges ||
       !parsed.topSkills ||
@@ -80,10 +113,10 @@ IMPORTANT:
   }
 };
 
-
 // =======================
 // 🔹 MAIN ACTION
 // =======================
+
 export async function getIndustryInsights() {
   console.log("🔥 getIndustryInsights called");
 
@@ -113,14 +146,19 @@ export async function getIndustryInsights() {
     !user.industryInsight ||
     user.industryInsight.nextUpdate < new Date();
 
-  if (!isStale) {
+  // =======================
+  // ✅ RETURN CACHED DATA
+  // =======================
+  if (!isStale && user.industryInsight) {
     console.log("📦 Returning cached insights");
-    return user.industryInsight;
+    return transformInsights(user.industryInsight);
   }
 
   console.log("🚀 Generating new insights...");
 
-  // 🔥 AI call OUTSIDE transaction (correct)
+  // =======================
+  // 🔥 AI GENERATION
+  // =======================
   let insights;
 
   try {
@@ -139,9 +177,11 @@ export async function getIndustryInsights() {
     };
   }
 
-  // 💾 Save to DB (no transaction needed here)
+  // =======================
+  // 💾 SAVE TO DB
+  // =======================
   const industryInsight = await prisma.industryInsight.upsert({
-    where: { industry: user.industry }, // ⚠️ must be unique in schema
+    where: { industry: user.industry },
     update: {
       ...insights,
       nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -153,5 +193,8 @@ export async function getIndustryInsights() {
     },
   });
 
-  return industryInsight;
+  // =======================
+  // ✅ RETURN CLEAN DATA
+  // =======================
+  return transformInsights(industryInsight);
 }
