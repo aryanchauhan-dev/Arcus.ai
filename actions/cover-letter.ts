@@ -61,6 +61,7 @@ RULES:
 - Match candidate skills with job
 - No markdown code blocks
 - Clean formatting
+- Make Sure the cover letter does'nt contain any unnecessary links in it.
 
 Return ONLY the cover letter text.
 `;

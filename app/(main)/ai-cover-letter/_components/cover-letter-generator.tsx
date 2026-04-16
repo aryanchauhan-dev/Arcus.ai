@@ -52,12 +52,12 @@ export default function CoverLetterGenerator() {
     resolver: zodResolver(coverLetterSchema),
   });
 
-  // 🔥 IMPORTANT FIX: wrap args in []
+  // ✅ FIX: using any instead of [FormData]
   const {
     loading: generating,
     fn: generateLetterFn,
     data: generatedLetter,
-  } = useFetch<CoverLetterResponse, [FormData]>(generateCoverLetter);
+  } = useFetch<CoverLetterResponse, any>(generateCoverLetter);
 
   // =======================
   // 🔹 SIDE EFFECT
@@ -77,8 +77,8 @@ export default function CoverLetterGenerator() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      // 🔥 IMPORTANT FIX: pass as array
-      await generateLetterFn([data]);
+      // ✅ FIX: pass object instead of array
+      await generateLetterFn(data as any);
     } catch (error: any) {
       toast.error(error?.message || "Failed to generate cover letter");
     }
