@@ -48,6 +48,7 @@ type Insights = {
   keyTrends?: string[];
   recommendedSkills?: string[];
   nextUpdate?: string | Date;
+  lastUpdated?: string | Date;
 };
 
 // =======================
@@ -103,9 +104,9 @@ const DashboardView = ({ insights }: { insights: Insights }) => {
   const outlookColor = outlookInfo.color;
 
   // 🔥 Date handling
-  const lastUpdatedDate = safeInsights.nextUpdate
-    ? format(new Date(safeInsights.nextUpdate), "dd/MM/yyyy")
-    : "N/A";
+  const lastUpdatedDate = safeInsights.lastUpdated
+  ? format(new Date(safeInsights.lastUpdated), "dd/MM/yyyy")
+  : "N/A";
 
   const nextUpdateDistance = safeInsights.nextUpdate
     ? formatDistanceToNow(new Date(safeInsights.nextUpdate), {
@@ -193,8 +194,8 @@ const DashboardView = ({ insights }: { insights: Insights }) => {
           <CardDescription>Values in thousands</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-100 relative z-10">
-            <ResponsiveContainer>
+          <div className="h-100 w-full relative z-10">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={salaryData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />

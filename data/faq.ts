@@ -2,31 +2,36 @@ export const faqs = [
   {
     question: "What makes arcus.ai unique as a career development platform?",
     answer:
-      "arcus.ai combines AI-powered tools to help you prepare for every stage of the job search. The platform includes an intelligent resume builder, a cover letter generator, and an AI-driven interview preparation system. Each feature adapts to your industry, skills, and experience to provide personalized career guidance.",
+      "arcus.ai is an AI-powered career platform designed to support you at every stage of your job journey. It combines personalized career insights, interview preparation, and smart content generation to help you make better career decisions with confidence.",
   },
   {
-    question: "How does arcus.ai generate personalized content?",
+    question: "What features are currently available on arcus.ai?",
     answer:
-      "During onboarding, arcus.ai collects information about your industry, skills, experience level, and target roles. Using this data, the platform generates tailored resumes, cover letters, and interview questions aligned with your professional background and career goals.",
+      "Currently, arcus.ai provides AI-driven career insights, industry trend analysis, and interview preparation tools. These features are tailored to your profile to help you understand market demand, required skills, and growth opportunities.",
+  },
+  {
+    question: "Is there a resume builder available?",
+    answer:
+      "The resume analyzer and builder feature is currently under development and will be available soon. It will allow you to upload your resume, compare it against job descriptions, and receive AI-powered suggestions to improve it.",
+  },
+  {
+    question: "How does arcus.ai generate personalized insights?",
+    answer:
+      "arcus.ai uses your selected role, skills, and preferences to generate tailored insights. This includes salary trends, in-demand skills, and market outlook, helping you make informed career decisions.",
   },
   {
     question: "How reliable are arcus.ai's career insights?",
     answer:
-      "arcus.ai leverages AI models trained on industry patterns and hiring trends to provide relevant career insights, including commonly required skills, interview expectations, and resume optimization strategies.",
+      "The platform uses AI models trained on industry patterns and hiring trends to generate insights. While highly useful for guidance, these insights should be combined with your own research and judgment.",
   },
   {
     question: "Is my data secure with arcus.ai?",
     answer:
-      "Yes. arcus.ai follows industry-standard security practices to protect your professional information. Authentication is handled securely using JWT (JSON Web Tokens), and your personal data is encrypted and never shared with third parties.",
+      "Yes. arcus.ai follows standard security practices to protect your data. Authentication is handled securely, and your personal information is not shared with third parties.",
   },
   {
-    question: "How can I track my interview preparation progress?",
+    question: "Can I customize the AI-generated outputs?",
     answer:
-      "arcus.ai provides detailed performance analytics for your mock interviews, including response quality, improvement areas, and progress over multiple practice sessions. This helps you identify weaknesses and steadily improve your interview skills.",
-  },
-  {
-    question: "Can I edit the AI-generated content?",
-    answer:
-      "Absolutely. arcus.ai gives you full control over all generated content. You can easily edit and refine resumes, cover letters, and other materials using the built-in editor to ensure everything perfectly reflects your experience and style.",
+      "Yes. All AI-generated insights and future content features are designed to be flexible, allowing you to adapt and refine them according to your needs.",
   },
 ];
