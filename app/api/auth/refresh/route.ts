@@ -1,11 +1,21 @@
 import { prisma } from "@/lib/prisma";
-import { verifyToken, signAccessToken, signRefreshToken } from "@/lib/auth";
+import {
+  verifyRefreshToken,
+  signAccessToken,
+  signRefreshToken,
+} from "@/lib/auth";
 import { hashToken } from "@/lib/hash";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function POST() {
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+};
 
+export async function POST() {
   const cookieStore = await cookies();
   const token = cookieStore.get("refreshToken")?.value;
 
@@ -13,9 +23,11 @@ export async function POST() {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const payload = await verifyToken(token);
+  const payload = await verifyRefreshToken(token);
 
-  if (!payload) return new Response("Invalid token", { status: 401 });
+  if (!payload) {
+    return new Response("Invalid token", { status: 401 });
+  }
 
   const hashed = hashToken(token);
 
@@ -23,51 +35,51 @@ export async function POST() {
     where: { token: hashed },
   });
 
-  if (!session || session.isRevoked) {
-    return new Response("Session invalid", { status: 401 });
+  if (!session || session.isRevoked || session.expiresAt < new Date()) {
+    return new Response("Session expired or invalid", { status: 401 });
   }
 
-  // 🔄 ROTATION (revoke old)
-  await prisma.session.update({
-    where: { id: session.id },
-    data: { isRevoked: true },
-  });
-
-  const newAccess = await signAccessToken(payload.userId);
-  const newRefresh = await signRefreshToken(payload.userId);
-
+  const newAccess = await signAccessToken(payload.userId, payload.email);
+  const newRefresh = await signRefreshToken(payload.userId, payload.email);
   const newHashed = hashToken(newRefresh);
+  const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  // 🔥 FIX: prevent duplicate crash
   try {
-    await prisma.session.create({
-      data: {
-        userId: payload.userId,
-        token: newHashed,
-        expiresAt: new Date(Date.now() + 7 * 86400000),
-      },
-    });
-  } catch (err: any) {
-    if (err.code === "P2002") {
-    } else {
-      throw err;
-    }
+    await prisma.$transaction([
+      prisma.session.update({
+        where: { id: session.id },
+        data: { isRevoked: true },
+      }),
+      prisma.session.create({
+        data: {
+          userId: payload.userId,
+          token: newHashed,
+          expiresAt: newExpiresAt,
+        },
+      }),
+    ]);
+  } catch {
+    return new Response("Session rotation failed", { status: 500 });
   }
 
   const res = NextResponse.json({ success: true });
 
   res.cookies.set("accessToken", newAccess, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: 60 * 15,
+    ...COOKIE_OPTIONS,
+    maxAge: 15 * 60,
   });
 
   res.cookies.set("refreshToken", newRefresh, {
-    httpOnly: true,
-    secure: true,
+    ...COOKIE_OPTIONS,
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
+  res.cookies.set("userEmail", payload.email, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 7 * 86400,
+    path: "/",
+    maxAge: 15 * 60,
   });
 
   return res;

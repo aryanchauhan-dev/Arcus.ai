@@ -1,73 +1,82 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "./lib/auth";
+import { verifyToken, verifyRefreshToken, signAccessToken } from "./lib/auth";
 
-const protectedRoutes = [
-  "/dashboard",
-  "/resume-builder",
-  "/interview",
-  "/ai-cover-letter",
-];
+const SIGN_IN_URL = "/sign-in";
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+};
 
 export async function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  const isProtected = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  if (!isProtected) return NextResponse.next();
-
   const accessToken = req.cookies.get("accessToken")?.value;
 
-  if (!accessToken) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
-  }
+  if (accessToken) {
+    const payload = await verifyToken(accessToken);
 
-  const payload = await verifyToken(accessToken);
+    if (payload) {
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set("x-user-id", payload.userId);
+      requestHeaders.set("x-user-email", payload.email); 
 
-  // 🔥 REFRESH LOGIC
-  if (!payload) {
-
-    const refreshToken = req.cookies.get("refreshToken")?.value;
-
-    if (!refreshToken) {
-      return NextResponse.redirect(new URL("/sign-in", req.url));
-    }
-
-    try {
-      const refreshRes = await fetch(new URL("/api/auth/refresh", req.url), {
-        method: "POST",
-        headers: {
-          cookie: req.headers.get("cookie") || "",
-        },
+      return NextResponse.next({
+        request: { headers: requestHeaders },
       });
-
-      if (!refreshRes.ok) {
-        throw new Error("Refresh failed");
-      }
-
-      const response = NextResponse.next();
-
-      const setCookie = refreshRes.headers.get("set-cookie");
-      if (setCookie) {
-        response.headers.set("set-cookie", setCookie);
-      }
-
-      return response;
-
-    } catch (err) {
-      return NextResponse.redirect(new URL("/sign-in", req.url));
     }
   }
 
-  const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("x-user-id", payload.userId);
+  const refreshToken = req.cookies.get("refreshToken")?.value;
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  if (!refreshToken) {
+    return redirectToSignIn(req);
+  }
+
+  try {
+    const refreshPayload = await verifyRefreshToken(refreshToken);
+
+    if (!refreshPayload) {
+      return redirectToSignIn(req);
+    }
+
+    const newAccessToken = await signAccessToken(
+      refreshPayload.userId,
+      refreshPayload.email 
+    );
+
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-user-id", refreshPayload.userId);
+    requestHeaders.set("x-user-email", refreshPayload.email);
+
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+
+    response.cookies.set("accessToken", newAccessToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: 15 * 60, 
+    });
+
+    response.cookies.set("userEmail", refreshPayload.email, {
+      httpOnly: false, 
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+
+    return response;
+
+  } catch {
+    return redirectToSignIn(req);
+  }
+}
+
+function redirectToSignIn(req: NextRequest) {
+  const signInUrl = new URL(SIGN_IN_URL, req.url);
+  signInUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+  return NextResponse.redirect(signInUrl);
 }
 
 export const config = {
