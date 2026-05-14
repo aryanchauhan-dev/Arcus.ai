@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { ReactNode } from "react";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/header";
@@ -7,44 +8,64 @@ import Header from "@/components/header";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Arcus.ai",
-  description: "",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  ),
+
+  title: {
+    default: "Arcus.ai — AI-Powered Career Intelligence",
+    template: "%s | Arcus.ai",
+  },
+  description:
+    "Build the career you actually want with AI-powered resume tools, interview prep, and personalized career guidance.",
+
+  openGraph: {
+    title: "Arcus.ai — AI-Powered Career Intelligence",
+    description:
+      "Build the career you actually want with AI-powered resume tools, interview prep, and personalized career guidance.",
+    type: "website",
+    siteName: "Arcus.ai",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Arcus.ai — AI-Powered Career Intelligence",
+    description:
+      "Build the career you actually want with AI-powered resume tools, interview prep, and personalized career guidance.",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: ReactNode }>) {
   return (
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          suppressHydrationWarning
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Header/>
-            <main className="min-h-screen pt-20">{children}</main>
-            <footer className="bg-muted/50 py-12">
-              <div className="container mx-auto px-4 text-center text-gray-200">
-                <p>✨ Made with passion and creativity 💖 — Made by Aryan Chauhan</p>
-              </div>
-            </footer>
-          </ThemeProvider>
-        </body>
-      </html>
+          <Header />
+          <main className="min-h-screen pt-20">{children}</main>
+          <footer className="bg-muted/50 py-12" aria-label="Site footer">
+            <div className="container mx-auto px-4 text-center text-muted-foreground">
+              <p>
+                ✨ Made with passion and creativity 💖 — Made by Aryan Chauhan
+              </p>
+            </div>
+          </footer>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

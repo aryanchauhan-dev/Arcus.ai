@@ -7,90 +7,91 @@ import {
   LayoutDashboard,
   PenBox,
   StarsIcon,
+  Mic,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem
+  DropdownMenuItem,
 } from "./ui/dropdown-menu";
 import { SignOutButton } from "./signout-button";
 import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/auth";
 
 const Header = async () => {
 
-  // 🧠 Step 1: Get cookies
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
-
-  // 🧠 Step 2: Check login state
-  const isLoggedIn = !!accessToken;
+  const payload = accessToken ? await verifyToken(accessToken) : null;
+  const isLoggedIn = !!payload;
 
   return (
     <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-50 supports-backdrop-filter:bg-background/60">
-      <nav className="px-4 lg:px-8 sm:px-6 h-20 flex items-center justify-between">
+      <nav className="px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
-        <Link href="/">
+        <Link href="/" aria-label="skillExa — go to homepage">
           <Image
             src="/arcus_ai_logo.svg"
-            alt="skillExa Logo"
+            alt=""
             width={160}
             height={58}
-            className="h-20 w-auto object-contain -ml-18"
+            className="h-14 w-auto object-contain"
+            priority
           />
         </Link>
 
         <div className="flex items-center space-x-2 md:space-x-4">
-          
-          {/* 🔹 Protected / Common Links */}
-          <Link href="/dashboard">
-            <Button variant={"outline"} className="cursor-pointer">
-              <LayoutDashboard className="h-4 w-3 mr-2" />
-              <span className="hidden md:block">Industry Insights</span>
-            </Button>
-          </Link>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant={"outline"} className="cursor-pointer">
-                <StarsIcon className="h-4 w-3" />
-                <span className="hidden md:block">Growth Tools</span>
-                <ChevronDown className="h-4 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
+          {isLoggedIn && (
+            <>
+              <Link href="/dashboard">
+                <Button variant="outline">
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  <span className="hidden md:block">Industry Insights</span>
+                </Button>
+              </Link>
 
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <Link href={"/resume"} className="flex items-center gap-2">
-                  <FileTextIcon className="h-4 w-3" />
-                  <span>Resume Analyzer</span>
-                </Link>
-              </DropdownMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" aria-label="Growth Tools menu">
+                    <StarsIcon className="h-4 w-4" />
+                    <span className="hidden md:block ml-2">Growth Tools</span>
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
 
-              <DropdownMenuItem>
-                <Link href={"/ai-cover-letter"} className="flex items-center gap-2">
-                  <PenBox className="h-4 w-3" />
-                  <span>Cover Letter</span>
-                </Link>
-              </DropdownMenuItem>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/resume" className="flex items-center gap-2">
+                      <FileTextIcon className="h-4 w-4" />
+                      <span>Resume Analyzer</span>
+                    </Link>
+                  </DropdownMenuItem>
 
-              <DropdownMenuItem>
-                <Link href={"/interview"} className="flex items-center gap-2">
-                  <FileTextIcon className="h-4 w-3" />
-                  <span>Interview Prep</span>
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <DropdownMenuItem asChild>
+                    <Link href="/ai-cover-letter" className="flex items-center gap-2">
+                      <PenBox className="h-4 w-4" />
+                      <span>Cover Letter</span>
+                    </Link>
+                  </DropdownMenuItem>
 
-          {/* 🔥 Conditional Rendering */}
+                  <DropdownMenuItem asChild>
+                    <Link href="/interview" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4" />
+                      <span>Interview Prep</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+
           {isLoggedIn ? (
             <SignOutButton variant="outline" />
           ) : (
-            <Link href={"/sign-in"}>
-              <Button variant={"outline"} className="cursor-pointer">
-                Sign In
-              </Button>
+            <Link href="/sign-in">
+              <Button variant="outline">Sign In</Button>
             </Link>
           )}
 

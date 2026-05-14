@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2, LogOut } from "lucide-react";
+import type { ComponentProps } from "react";
 
 interface SignOutButtonProps {
-  variant?: "default" | "ghost" | "outline" | "destructive";
+  variant?: ComponentProps<typeof Button>["variant"];
   showIcon?: boolean;
   className?: string;
 }
@@ -18,35 +19,54 @@ export function SignOutButton({
 }: SignOutButtonProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignOut = async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      await fetch("/api/auth/sign-out", { method: "POST" });
+      await fetch("/api/auth/sign-out", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+
       router.push("/sign-in");
-      router.refresh(); // forces header to re-render and switch back to Sign In
+      router.refresh();
     } catch {
-      console.error("Sign out failed");
-    } finally {
+      setError("Sign out failed. Please try again.");
       setLoading(false);
     }
   };
 
   return (
-    <Button
-      variant={variant}
-      onClick={handleSignOut}
-      disabled={loading}
-      className={className}
-    >
-      {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
-      ) : (
-        <>
-          {showIcon && <LogOut className="w-4 h-4 mr-2" />}
-          Sign Out
-        </>
+    <div className="flex flex-col items-start gap-1">
+      <Button
+        variant={variant}
+        onClick={handleSignOut}
+        disabled={loading}
+        className={className}
+        aria-busy={loading}
+        aria-label={loading ? "Signing out..." : "Sign out"}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            Signing out...
+          </>
+        ) : (
+          <>
+            {showIcon && <LogOut className="w-4 h-4 mr-2" />}
+            Sign Out
+          </>
+        )}
+      </Button>
+
+      {error && (
+        <p role="alert" className="text-xs text-red-500">
+          {error}
+        </p>
       )}
-    </Button>
+    </div>
   );
 }

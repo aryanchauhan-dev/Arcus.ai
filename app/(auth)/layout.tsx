@@ -10,7 +10,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       }}
     >
 
-      {/* Diagonal purple overlay — the main slash */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -19,7 +18,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         }}
       />
 
-      {/* Soft purple glow at the diagonal center point */}
       <div
         className="pointer-events-none absolute h-90 w-90 rounded-full"
         style={{
@@ -31,7 +29,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         }}
       />
 
-      {/* Top-left dark anchor so the corner doesn't feel washed out */}
       <div
         className="pointer-events-none absolute -left-10 -top-10 h-65 w-65 rounded-full"
         style={{
@@ -40,7 +37,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         }}
       />
 
-      {/* Bottom-right dark anchor */}
       <div
         className="pointer-events-none absolute -bottom-10 -right-10 h-65 w-65 rounded-full"
         style={{
@@ -49,7 +45,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         }}
       />
 
-      {/* Diagonal highlight line — thin bright edge along the slash */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -58,7 +53,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         }}
       />
 
-      {/* Top hairline accent */}
       <div
         className="pointer-events-none absolute left-0 right-0 top-0 h-px"
         style={{
@@ -67,7 +61,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         }}
       />
 
-      {/* Page content */}
       <div className="relative z-10">{children}</div>
     </div>
   );
