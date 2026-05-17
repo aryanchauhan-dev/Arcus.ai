@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// 🔥 YYYY-MM validation (important for date input)
 const dateRegex = /^\d{4}-\d{2}$/;
 
 export const entrySchema = z
@@ -32,7 +31,6 @@ export const entrySchema = z
     current: z.boolean().default(false),
   })
 
-  // 🔥 End date validation
   .refine(
     (data) => {
       if (!data.current && !data.endDate) return false;
@@ -44,7 +42,6 @@ export const entrySchema = z
     }
   )
 
-  // 🔥 Date consistency check (VERY IMPORTANT)
   .refine(
     (data) => {
       if (!data.endDate || data.current) return true;

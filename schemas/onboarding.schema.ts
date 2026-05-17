@@ -31,5 +31,4 @@ export const onboardingSchema = z.object({
     .optional(),
 });
 
-// 🔥 Type inference (VERY IMPORTANT)
 export type OnboardingFormData = z.infer<typeof onboardingSchema>;

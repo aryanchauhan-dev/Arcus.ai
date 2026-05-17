@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'", 
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "font-src 'self'",
@@ -45,13 +45,13 @@ const nextConfig: NextConfig = {
   },
 
   images: {
-    formats: ["image/avif", "image/webp"], 
-    minimumCacheTTL: 60 * 60 * 24 * 7, 
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 7,
   },
 
   compiler: {
     removeConsole: process.env.NODE_ENV === "production"
-      ? { exclude: ["error", "warn"] }  
+      ? { exclude: ["error", "warn"] }
       : false,
   },
 
@@ -66,7 +66,6 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
-    optimizeCss: true,
     optimizeServerReact: true,
   },
 

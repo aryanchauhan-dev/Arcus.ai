@@ -18,8 +18,7 @@ export const coverLetterSchema = z.object({
     .trim()
     .max(5000, "Job description is too long")
     .optional()
-    .or(z.literal("")), // Allows empty string safely
+    .or(z.literal("")),
 });
 
-// Export the type so the Action and Component can use it
 export type CoverLetterInput = z.infer<typeof coverLetterSchema>;
