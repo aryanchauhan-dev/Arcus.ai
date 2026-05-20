@@ -2,49 +2,22 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { useRouter } from "next/navigation";
-
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
-
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription,
+  DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-
 import QuizResult from "./quiz-result";
 
-// =======================
-// 🔹 TYPES
-// =======================
+import type { getAssessments, QuestionResult } from "@/actions/interview";
 
-type Assessment = {
-  id: string;
-  createdAt: string | Date;
-  quizScore: number;
-  improvementTip?: string | null;
-  questions?: any[]; // DB JSON
-};
+type Assessment = Awaited<ReturnType<typeof getAssessments>>[number];
 
-type Props = {
-  assessments: Assessment[];
-};
-
-// =======================
-// 🔹 COMPONENT
-// =======================
-
-export default function QuizList({ assessments }: Props) {
-  const router = useRouter();
-
+export default function QuizList({ assessments }: { assessments: Assessment[] }) {
   const [selectedQuiz, setSelectedQuiz] = useState<Assessment | null>(null);
 
   return (
@@ -61,78 +34,78 @@ export default function QuizList({ assessments }: Props) {
               </CardDescription>
             </div>
 
-            <Button onClick={() => router.push("/interview/mock")}>
-              Start New Quiz
+            <Button asChild>
+              <Link href="/interview/mock">Start New Quiz</Link>
             </Button>
           </div>
         </CardHeader>
 
         <CardContent>
           <div className="space-y-4">
-            {assessments?.length === 0 && (
+
+            {assessments.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                No quizzes attempted yet.
+                No quizzes attempted yet. Start your first quiz above!
               </p>
             )}
 
-            {assessments?.map((assessment, i) => (
+            {assessments.map((assessment) => (
               <Card
                 key={assessment.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`View quiz from ${format(new Date(assessment.createdAt), "MMMM dd, yyyy")}`}
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => setSelectedQuiz(assessment)}
+                onKeyDown={(e) => e.key === "Enter" && setSelectedQuiz(assessment)}
               >
                 <CardHeader>
                   <CardTitle className="gradient-title text-2xl">
-                    Quiz {i + 1}
+                    {format(new Date(assessment.createdAt), "MMM dd, yyyy")}
                   </CardTitle>
 
-                  <CardDescription className="flex justify-between w-full">
-                    <div>
-                      Score: {assessment.quizScore.toFixed(1)}%
-                    </div>
-
-                    <div>
-                      {format(
-                        new Date(assessment.createdAt),
-                        "MMMM dd, yyyy HH:mm"
-                      )}
-                    </div>
-                  </CardDescription>
+                  <div className="flex justify-between w-full text-sm text-muted-foreground mt-1">
+                    <span>Score: {assessment.quizScore.toFixed(1)}%</span>
+                    <span>
+                      {format(new Date(assessment.createdAt), "HH:mm")}
+                    </span>
+                  </div>
                 </CardHeader>
 
                 {assessment.improvementTip && (
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      {assessment.improvementTip}
+                      💡 {assessment.improvementTip}
                     </p>
                   </CardContent>
                 )}
               </Card>
             ))}
+
           </div>
         </CardContent>
       </Card>
 
-      {/* 🔥 DIALOG */}
       <Dialog
         open={!!selectedQuiz}
-        onOpenChange={(open) => {
-          if (!open) setSelectedQuiz(null);
-        }}
+        onOpenChange={(open) => { if (!open) setSelectedQuiz(null); }}
       >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Quiz Details</DialogTitle>
+            <DialogDescription>
+              Review your answers and improvement tips.
+            </DialogDescription>
           </DialogHeader>
 
           {selectedQuiz && (
             <QuizResult
               result={{
                 ...selectedQuiz,
-                questions: selectedQuiz.questions ?? [], // 🔥 FIX
+                questions: (selectedQuiz.questions as QuestionResult[]) ?? [],
               }}
               hideStartNew
-              onStartNew={() => router.push("/interview/mock")}
+              onStartNew={() => { }}
             />
           )}
         </DialogContent>

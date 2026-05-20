@@ -1,24 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import Quiz from "../_components/quiz";
 
-// =======================
-// 🔹 COMPONENT
-// =======================
+export const metadata: Metadata = {
+  title: "Mock Interview",
+};
 
 export default function MockInterviewPage() {
   return (
-    <main className="container mx-auto py-6 space-y-6">
-      {/* HEADER */}
+    <div className="container mx-auto py-6 space-y-6">
+
       <header className="flex flex-col space-y-3 px-2">
-        <Link href="/interview" className="w-fit">
-          <Button variant="link" className="gap-2 pl-0">
+        <Button asChild variant="link" className="gap-2 pl-0 w-fit">
+          <Link href="/interview">
             <ArrowLeft className="h-4 w-4" />
             Back to Interview Preparation
-          </Button>
-        </Link>
+          </Link>
+        </Button>
 
         <div>
           <h1 className="text-4xl md:text-6xl font-bold gradient-title">
@@ -30,10 +30,10 @@ export default function MockInterviewPage() {
         </div>
       </header>
 
-      {/* CONTENT */}
       <section className="px-2">
         <Quiz />
       </section>
-    </main>
+
+    </div>
   );
 }
