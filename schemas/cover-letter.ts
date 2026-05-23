@@ -1,24 +1,18 @@
 import { z } from "zod";
 
+export const TONE_OPTIONS = [
+  { value: "professional", label: "Professional", description: "Formal and business-appropriate" },
+  { value: "creative", label: "Creative", description: "Engaging and distinctive" },
+  { value: "concise", label: "Concise", description: "Brief and direct — under 250 words" },
+  { value: "enthusiastic", label: "Enthusiastic", description: "Energetic and passionate" },
+] as const;
+
+export type Tone = typeof TONE_OPTIONS[number]["value"];
+
 export const coverLetterSchema = z.object({
-  companyName: z
-    .string()
-    .trim()
-    .min(2, "Company name must be at least 2 characters")
-    .max(100, "Company name is too long"),
-
-  jobTitle: z
-    .string()
-    .trim()
-    .min(2, "Job title must be at least 2 characters")
-    .max(100, "Job title is too long"),
-
-  jobDescription: z
-    .string()
-    .trim()
-    .max(5000, "Job description is too long")
-    .optional()
-    .or(z.literal("")),
+  jobTitle: z.string().min(1, "Job title is required").max(100),
+  companyName: z.string().min(1, "Company name is required").max(100),
+  jobDescription: z.string().max(5000).optional(),
+  tone: z.enum(["professional", "creative", "concise", "enthusiastic"])
+    .default("professional"),
 });
-
-export type CoverLetterInput = z.infer<typeof coverLetterSchema>;
