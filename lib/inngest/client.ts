@@ -1,6 +1,6 @@
 import { Inngest } from "inngest";
 
 export const inngest = new Inngest({
-  id: "arcus-ai", 
+  id: "arcus-ai",
   name: "Arcus AI",
 });

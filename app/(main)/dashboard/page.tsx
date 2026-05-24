@@ -1,18 +1,27 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { getIndustryInsights } from "@/lib/get-insights";
 import { isFallbackInsight } from "@/lib/insight-utils";
 import { getUserOnboardingStatus } from "@/actions/onboarding";
-import { redirect } from "next/navigation";
+import { getUserSkills } from "@/actions/dashboard";
 import DashboardView from "./_components/dashboard-view";
+import DashboardSkeleton from "./_components/dashboard-skeleton";
 
-const IndustryInsightsPage = async () => {
+export const metadata: Metadata = {
+  title: "Industry Insights",
+};
 
-  const { isOnboarded } = await getUserOnboardingStatus();
-  if (!isOnboarded) redirect("/onboarding");
-
+async function DashboardContent() {
   let insights;
+  let userSkills: string[] = [];
+
   try {
-    insights = await getIndustryInsights();
+    [insights, userSkills] = await Promise.all([
+      getIndustryInsights(),
+      getUserSkills(),
+    ]);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (message === "Unauthorized" || message === "Session expired") {
@@ -40,7 +49,17 @@ const IndustryInsightsPage = async () => {
     );
   }
 
-  return <DashboardView insights={insights} />;
-};
+  return <DashboardView insights={insights} userSkills={userSkills} />;
+}
 
-export default IndustryInsightsPage;
+export default async function IndustryInsightsPage() {
+
+  const { isOnboarded } = await getUserOnboardingStatus();
+  if (!isOnboarded) redirect("/onboarding");
+
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
