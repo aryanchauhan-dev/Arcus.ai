@@ -1,171 +1,56 @@
 # 🚀 Arcus.ai — AI-Powered Career Intelligence Platform
 
-Arcus.ai is an intelligent career development platform designed to help individuals make smarter career decisions, prepare effectively for interviews, and stay aligned with real-time industry trends.
+Arcus.ai is an intelligent career development platform designed to help individuals make smarter career decisions, optimize their application materials, prepare effectively for interviews, and stay aligned with real-time industry trends.
 
-It combines AI-driven insights, interview preparation, and (upcoming) resume analysis into a single, cohesive experience.
+It seamlessly combines AI-driven insights, automated application tailoring, interview preparation, and deep resume analysis into a single, cohesive experience.
 
 ---
 
 ## ✨ Core Features
 
 ### 🧠 AI Career Guidance
+- **Tailored Recommendations:** Receive personalized insights based on your target role, current skills, and professional experience.
+- **Strategic Direction:** Actionable strategies to improve your career trajectory and upskill efficiently.
+- **Data-Driven Confidence:** Move away from guesswork with structured career guidance.
 
-- Personalized insights based on your role, skills, and experience
-- Actionable recommendations to improve your career trajectory
-- Data-driven decision making
+### 📄 AI Resume Analyzer
+- **ATS & Recruiter Alignment:** Upload your resume and analyze it directly against specific job descriptions.
+- **Keyword Gap Analysis:** Identify missing technical or behavioral keywords crucial for passing automated screeners.
+- **Actionable Critiques:** Get instant, AI-powered suggestions to rewrite weak bullet points and enhance impact.
 
-### 📊 Real-Time Industry Insights
-
-- Salary trends across roles
-- In-demand skills in your domain
-- Market outlook (positive / neutral / negative)
+### ✉️ Smart Cover Letters
+- **Role-Specific Context:** Instantly generate tailored cover letters that bridge the gap between your resume and the job posting.
+- **Inline Customization:** Edit and refine the generated copy directly on the platform to perfectly inject your personal voice.
+- **One-Click Export:** Download your polished cover letter instantly as a clean, professionally formatted PDF.
 
 ### 🎯 Smart Interview Preparation
+- **Dynamic Scenarios:** Practice with role-specific technical, behavioral, and situational questions.
+- **Instant Critique:** Receive performance feedback on your answers with ideal sample responses.
+- **Confidence Building:** Real-time feedback loops to sharpen your communication before stepping into the interview room.
 
-- Role-specific interview questions
-- AI-generated scenarios (technical + behavioral)
-- Performance feedback and improvement tracking
-
-### 📈 Progress Analytics
-
-- Track your preparation journey
-- Identify weak areas
-- Monitor improvement over time
-
-### 🚧 Resume Analyzer (Coming Soon)
-
-- Upload your resume
-- Match against job descriptions
-- Get AI-powered suggestions for optimization
+### 📊 Real-Time Industry Insights & Analytics
+- **Market Scoping:** Track salary trends and overall market outlook (Positive / Neutral / Negative) across roles.
+- **Progress Tracking:** Monitor your interview preparation journey, identify weak competency areas, and watch your metrics improve over time.
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer      | Technology                   |
-| ---------- | ---------------------------- |
-| Frontend   | Next.js (App Router), React  |
-| Styling    | Tailwind CSS                 |
-| UI         | shadcn/ui + Lucide Icons     |
-| Charts     | Recharts                     |
-| Backend    | Server Actions               |
-| AI Layer   | LLM-based insights           |
-| State/Data | Optimized caching strategies |
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend Framework** | Next.js (App Router), React |
+| **Styling** | Tailwind CSS |
+| **UI Components** | shadcn/ui + Lucide Icons |
+| **Data Visualization** | Recharts |
+| **Backend Architecture**| Next.js Server Actions |
+| **AI Processing Layer** | LLM-based custom insight engines |
+| **State & Caching** | Optimized caching & revalidation strategies |
 
 ---
 
 ## ⚙️ Getting Started
 
 ### 1️⃣ Clone the Repository
-
 ```bash
-git clone https://github.com/your-username/arcus.ai.git
+git clone [https://github.com/aryanchauhan-dev/arcus.ai.git](https://github.com/aryanchauhan-dev/arcus.ai.git)
 cd arcus.ai
-```
-
-### 2️⃣ Install Dependencies
-
-```bash
-pnpm install
-```
-
-### 3️⃣ Run Development Server
-
-```bash
-pnpm dev
-```
-
-App will be available at:
-
-```
-http://localhost:3000
-```
-
----
-
-## 📁 Project Structure
-
-```
-/app
-  /dashboard        → Main insights & analytics
-  /resume           → (Upcoming feature)
-  layout.tsx        → Root layout
-  page.tsx          → Landing page
-
-/components         → Reusable UI components
-/lib                → Utility & logic
-/data               → Static data (FAQs, features, etc.)
-```
-
----
-
-## 🧠 How It Works
-
-1. **Onboarding**
-   User provides role, skills, and goals
-
-2. **Insight Generation**
-   AI analyzes trends and generates career insights
-
-3. **Interview Preparation**
-   Practice questions + receive feedback
-
-4. **Progress Tracking**
-   Monitor improvement with analytics
-
----
-
-## 🔒 Security & Data
-
-- Secure authentication mechanisms
-- No unnecessary data exposure
-- Privacy-focused architecture
-
----
-
-## 🎯 Vision
-
-Arcus.ai aims to become a **complete AI career companion**, helping users:
-
-- Understand the job market
-- Improve their skillset
-- Prepare effectively
-- Land better opportunities
-
----
-
-## 🚀 Roadmap
-
-- [x] Career Insights Dashboard
-- [x] Interview Preparation System
-- [x] Performance Analytics
-- [x] Cover Letter Generator
-- [ ] Resume Analyzer & Optimizer
-- [ ] Job Matching Engine
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome.
-Feel free to fork the repo, create a branch, and submit a PR.
-
----
-
-## 📬 Contact
-
-For feedback, ideas, or collaboration:
-
-- Email: [aryanchauhan222222@gmail.com]
-- GitHub: aryanchauhan-dev
-
----
-
-## ⭐ Support
-
-If you find this project useful, consider giving it a star ⭐
-It helps others discover the project and motivates further development.
-
----
-
-> Built with precision, focused on impact.

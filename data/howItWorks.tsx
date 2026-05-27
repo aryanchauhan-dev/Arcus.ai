@@ -1,4 +1,4 @@
-import { UserPlus, Brain, Users, LineChart } from "lucide-react";
+import { UserPlus, Brain, FileSearch, Users } from "lucide-react";
 
 export const howItWorks = [
   {
@@ -14,15 +14,15 @@ export const howItWorks = [
     icon: <Brain className="w-8 h-8 text-primary" />,
   },
   {
+    title: "AI Resume Analyzer",
+    description:
+      "Upload your resume to compare it against your target job descriptions. Get instant AI feedback and actionable suggestions to optimize it for hiring managers.",
+    icon: <FileSearch className="w-8 h-8 text-primary" />,
+  },
+  {
     title: "Smart Interview Preparation",
     description:
       "Practice role-specific interview questions with AI-generated scenarios and receive feedback to improve your performance and confidence.",
     icon: <Users className="w-8 h-8 text-primary" />,
-  },
-  {
-    title: "Track Progress & Improve",
-    description:
-      "Monitor your progress with detailed analytics, identify weak areas, and continuously improve your preparation over time.",
-    icon: <LineChart className="w-8 h-8 text-primary" />,
   },
 ];
