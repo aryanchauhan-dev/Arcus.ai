@@ -7,7 +7,12 @@ export const faqs = [
   {
     question: "What features are currently available on arcus.ai?",
     answer:
-      "Currently, arcus.ai provides AI-driven career insights, interview preparation tools, and a comprehensive resume analyzer. These features are tailored to your profile to help you understand market demand, required skills, and growth opportunities.",
+      "Currently, arcus.ai provides AI-driven career insights, industry trend analysis, interview preparation tools, and a comprehensive resume builder and analyzer. These features are tailored to your profile to help you understand market demand, required skills, and growth opportunities.",
+  },
+  {
+    question: "Is there a resume builder and analyzer available?",
+    answer:
+      "Yes! arcus.ai includes a built-in resume builder and analyzer. You can upload your existing resume, compare it against specific job descriptions, and receive AI-powered recommendations to optimize it for applicant tracking systems (ATS) and hiring managers.",
   },
   {
     question: "Can I edit and download my cover letters from the platform?",
@@ -32,6 +37,6 @@ export const faqs = [
   {
     question: "Can I customize the AI-generated outputs?",
     answer:
-      "Yes. All AI-generated cover letters are designed to be completely flexible, allowing you to adapt, edit, and refine them according to your needs.",
+      "Yes. All AI-generated insights, resumes, and cover letters are designed to be completely flexible, allowing you to adapt, edit, and refine them according to your needs.",
   },
 ];
