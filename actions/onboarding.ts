@@ -26,13 +26,6 @@ export async function updateUser(data: {
 
   const userId = await getAuthenticatedUserId();
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true },
-  });
-
-  if (!user) throw new Error("User not found");
-
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {

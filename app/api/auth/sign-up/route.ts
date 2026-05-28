@@ -32,13 +32,10 @@ export async function POST(req: Request) {
   }
 
   const { name, email, password } = parsed.data;
-
   const hashed = await bcrypt.hash(password, 12);
 
-  let user: { id: string; email: string };
-
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const newUser = await prisma.$transaction(async (tx) => {
       const exists = await tx.user.findUnique({
         where: { email },
         select: { id: true },
@@ -46,47 +43,40 @@ export async function POST(req: Request) {
 
       if (exists) return null;
 
-      const newUser = await tx.user.create({
+      return tx.user.create({
         data: { name, email, passwordHash: hashed },
         select: { id: true, email: true },
       });
-
-      const accessToken = await signAccessToken(newUser.id, newUser.email);
-      const refreshToken = await signRefreshToken(newUser.id, newUser.email);
-
-      await tx.session.create({
-        data: {
-          userId: newUser.id,
-          token: hashToken(refreshToken),
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        },
-      });
-
-      return { newUser, accessToken, refreshToken };
     });
 
-    if (!result) {
-      return NextResponse.json(
-        { error: "Email already in use" },
-        { status: 409 },
-      );
+    if (!newUser) {
+      return NextResponse.json({ error: "Email already in use" }, { status: 409 });
     }
 
-    user = result.newUser;
+    const accessToken = await signAccessToken(newUser.id, newUser.email);
+    const refreshToken = await signRefreshToken(newUser.id, newUser.email);
+
+    await prisma.session.create({
+      data: {
+        userId: newUser.id,
+        token: hashToken(refreshToken),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
 
     const res = NextResponse.json({ success: true });
 
-    res.cookies.set("accessToken", result.accessToken, {
+    res.cookies.set("accessToken", accessToken, {
       ...COOKIE_OPTIONS,
       maxAge: 15 * 60,
     });
 
-    res.cookies.set("refreshToken", result.refreshToken, {
+    res.cookies.set("refreshToken", refreshToken, {
       ...COOKIE_OPTIONS,
       maxAge: 7 * 24 * 60 * 60,
     });
 
-    res.cookies.set("userEmail", user.email, {
+    res.cookies.set("userEmail", newUser.email, {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

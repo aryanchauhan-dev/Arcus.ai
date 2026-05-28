@@ -176,7 +176,7 @@ export default function CoverLetterPreview({
           <span className="text-xs text-muted-foreground">
             {wordCount} words · {charCount} characters
           </span>
-          {isEditing && (
+          {isEditing && content !== coverLetter.content && (
             <span className="text-xs text-amber-500 font-medium">
               Unsaved changes
             </span>

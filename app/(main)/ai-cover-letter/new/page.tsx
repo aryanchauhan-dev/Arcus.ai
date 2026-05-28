@@ -12,50 +12,24 @@ export const metadata: Metadata = {
   title: "Create Cover Letter",
 };
 
-async function getUserProfile() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-    if (!token) return null;
-
-    const payload = await verifyToken(token);
-    if (!payload) return null;
-
-    return prisma.user.findUnique({
-      where: { id: payload.userId },
-      select: {
-        name: true,
-        industry: true,
-        experience: true,
-        skills: true,
-        bio: true,
-      },
-    });
-  } catch {
-    return null;
-  }
-}
-
 export default async function NewCoverLetterPage() {
 
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
-
   if (!token) redirect("/sign-in?callbackUrl=/ai-cover-letter/new");
 
   const payload = await verifyToken(token);
   if (!payload) redirect("/sign-in?callbackUrl=/ai-cover-letter/new");
 
-  const rawProfile = await getUserProfile();
+  const rawProfile = await prisma.user.findUnique({
+    where: { id: payload.userId },
+    select: { name: true, industry: true, experience: true, skills: true, bio: true },
+  });
 
-  const userProfile = rawProfile
-    ? {
-      ...rawProfile,
-      skills: Array.isArray(rawProfile.skills)
-        ? (rawProfile.skills as string[])
-        : [],
-    }
-    : undefined;
+  const userProfile = rawProfile ? {
+    ...rawProfile,
+    skills: Array.isArray(rawProfile.skills) ? (rawProfile.skills as string[]) : [],
+  } : undefined;
 
   return (
     <div className="container mx-auto py-6">

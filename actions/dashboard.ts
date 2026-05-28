@@ -47,7 +47,6 @@ export async function getUserSkills(): Promise<string[]> {
         select: { skills: true },
     });
 
-    if (user?.skills == null) throw new Error("Hello")
-
+    if (!user) return []
     return Array.isArray(user?.skills) ? (user.skills as string[]) : [];
 }

@@ -7,7 +7,7 @@ const CLEAR_COOKIE_OPTIONS = {
   path: "/",
   sameSite: "lax" as const,
   secure: process.env.NODE_ENV === "production",
-  expires: new Date(0), 
+  expires: new Date(0),
 };
 
 export async function POST() {
@@ -21,7 +21,7 @@ export async function POST() {
         where: { token: hashToken(token) },
       });
     } catch {
-      console.log("Session may be deleted");
+      console.error("Failed to delete session")
     }
   }
 
@@ -32,7 +32,7 @@ export async function POST() {
 
   res.cookies.set("userEmail", "", {
     ...CLEAR_COOKIE_OPTIONS,
-    httpOnly: false, 
+    httpOnly: false,
   });
 
   return res;

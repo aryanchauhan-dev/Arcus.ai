@@ -26,7 +26,8 @@ function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const raw = searchParams.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = raw.startsWith("/") ? raw : "/dashboard";
 
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -109,12 +110,6 @@ function SignInForm() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
                 </div>
 
                 <div className="relative">
