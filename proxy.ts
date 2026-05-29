@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken, verifyRefreshToken, signAccessToken } from "./lib/auth";
+import { prisma } from "./lib/prisma";
+import { hashToken } from "./lib/hash";
 
 const SIGN_IN_URL = "/sign-in";
 
@@ -19,7 +21,7 @@ export async function proxy(req: NextRequest) {
     if (payload) {
       const requestHeaders = new Headers(req.headers);
       requestHeaders.set("x-user-id", payload.userId);
-      requestHeaders.set("x-user-email", payload.email); 
+      requestHeaders.set("x-user-email", payload.email);
 
       return NextResponse.next({
         request: { headers: requestHeaders },
@@ -40,9 +42,18 @@ export async function proxy(req: NextRequest) {
       return redirectToSignIn(req);
     }
 
+    const session = await prisma.session.findUnique({
+      where: { token: hashToken(refreshToken) },
+      select: { isRevoked: true, expiresAt: true },
+    });
+
+    if (!session || session.isRevoked || session.expiresAt < new Date()) {
+      return redirectToSignIn(req);
+    }
+
     const newAccessToken = await signAccessToken(
       refreshPayload.userId,
-      refreshPayload.email 
+      refreshPayload.email
     );
 
     const requestHeaders = new Headers(req.headers);
@@ -55,11 +66,11 @@ export async function proxy(req: NextRequest) {
 
     response.cookies.set("accessToken", newAccessToken, {
       ...COOKIE_OPTIONS,
-      maxAge: 15 * 60, 
+      maxAge: 15 * 60,
     });
 
     response.cookies.set("userEmail", refreshPayload.email, {
-      httpOnly: false, 
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
@@ -82,7 +93,7 @@ function redirectToSignIn(req: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
-    "/resume-builder/:path*",
+    "/resume/:path*",
     "/interview/:path*",
     "/ai-cover-letter/:path*",
   ],

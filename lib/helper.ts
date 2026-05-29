@@ -1,4 +1,13 @@
-export function entriesToMarkdown(entries: any[], type: string) {
+type Entry = {
+  title?: string;
+  organization?: string;
+  startDate?: string;
+  endDate?: string;
+  current?: boolean;
+  description?: string;
+};
+
+export function entriesToMarkdown(entries: Entry[], type: string) {
   if (!entries || entries.length === 0) return "";
 
   return (
@@ -15,14 +24,13 @@ export function entriesToMarkdown(entries: any[], type: string) {
             ? `${startDate} – ${endDate}`
             : startDate || endDate;
 
-        // 🔥 Convert description → bullet points
         const bulletPoints = entry.description
           ? entry.description
-              .split("\n")                // user writes line by line
-              .map((line: string) => line.trim())
-              .filter(Boolean)
-              .map((line: string) => `– ${line}`) // add bullet
-              .join("\n")
+            .split("\n")
+            .map((line: string) => line.trim())
+            .filter(Boolean)
+            .map((line: string) => `– ${line}`)
+            .join("\n")
           : "";
 
         return `

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { inngest } from "./client";
 import { GoogleGenAI } from "@google/genai";
+import { AIInsightSchema } from "@/lib/insight-utils";
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("Missing GEMINI_API_KEY environment variable");
@@ -9,23 +10,7 @@ if (!process.env.GEMINI_API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const InsightSchema = z.object({
-  salaryRanges: z.array(z.object({
-    role: z.string(),
-    min: z.number(),
-    max: z.number(),
-    median: z.number(),
-    location: z.string(),
-  })),
-  growthRate: z.number(),
-  demandLevel: z.enum(["HIGH", "MEDIUM", "LOW"]),
-  marketOutlook: z.enum(["POSITIVE", "NEUTRAL", "NEGATIVE"]),
-  topSkills: z.array(z.string()),
-  keyTrends: z.array(z.string()),
-  recommendedSkills: z.array(z.string()),
-});
-
-type InsightData = z.infer<typeof InsightSchema>;
+type InsightData = z.infer<typeof AIInsightSchema>;
 
 function parseCacheKey(cacheKey: string): { industry: string; skills: string[] } {
   const colonIndex = cacheKey.indexOf(":");
@@ -88,7 +73,7 @@ IMPORTANT: Return ONLY the JSON object. No markdown, no explanation, no trailing
       return null;
     }
 
-    const validated = InsightSchema.safeParse(parsed);
+    const validated = AIInsightSchema.safeParse(parsed);
     if (!validated.success) return null;
 
     return validated.data;
