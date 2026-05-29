@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ResumeSkeleton() {
     return (
-        <div className="space-y-6 animate-pulse">
+        <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="md:col-span-1 flex items-center justify-center p-8">
                     <Skeleton className="h-40 w-40 rounded-full" />

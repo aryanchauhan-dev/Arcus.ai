@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { signupBackendSchema } from "@/schemas/auth";
 import bcrypt from "bcryptjs";
 import { signAccessToken, signRefreshToken } from "@/lib/auth";
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
   const hashed = await bcrypt.hash(password, 12);
 
   try {
-    const newUser = await prisma.$transaction(async (tx) => {
+    const newUser = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const exists = await tx.user.findUnique({
         where: { email },
         select: { id: true },

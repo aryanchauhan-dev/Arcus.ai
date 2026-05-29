@@ -93,10 +93,7 @@ function SkillsGapCard({
   const userSkillsLower = userSkills.map((s) => s.toLowerCase());
 
   const hasSkill = (skill: string) =>
-    userSkillsLower.some(
-      (us) => us.includes(skill.toLowerCase()) ||
-        skill.toLowerCase().includes(us)
-    );
+    userSkillsLower.includes(skill.toLowerCase());
 
   const allSkills = [...new Set([...topSkills, ...recommendedSkills])].slice(0, 10);
   if (allSkills.length === 0) return null;

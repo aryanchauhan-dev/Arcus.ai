@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -8,10 +7,7 @@ import { getUserOnboardingStatus } from "@/actions/onboarding";
 import { getUserSkills } from "@/actions/dashboard";
 import DashboardView from "./_components/dashboard-view";
 import DashboardSkeleton from "./_components/dashboard-skeleton";
-
-export const metadata: Metadata = {
-  title: "Industry Insights",
-};
+import { cookies } from "next/headers";
 
 async function DashboardContent() {
   let insights;
@@ -55,7 +51,12 @@ async function DashboardContent() {
 export default async function IndustryInsightsPage() {
 
   const { isOnboarded } = await getUserOnboardingStatus();
-  if (!isOnboarded) redirect("/onboarding");
+  if (!isOnboarded) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("accessToken")?.value;
+    if (!token) redirect("/sign-in?callbackUrl=/dashboard");
+    redirect("/onboarding");
+  }
 
   return (
     <Suspense fallback={<DashboardSkeleton />}>

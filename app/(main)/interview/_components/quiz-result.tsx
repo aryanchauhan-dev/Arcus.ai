@@ -83,9 +83,9 @@ export default function QuizResult({
           <p className="text-sm text-muted-foreground">No questions found.</p>
         )}
 
-        {result.questions.map((q) => (
+        {result.questions.map((q, i) => (
           <div
-            key={q.question}
+            key={i}
             className="border rounded-lg p-4 space-y-2"
           >
             <div className="flex items-start justify-between gap-2">

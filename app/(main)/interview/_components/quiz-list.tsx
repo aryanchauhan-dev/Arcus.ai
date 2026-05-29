@@ -105,7 +105,6 @@ export default function QuizList({ assessments }: { assessments: Assessment[] })
                 questions: (selectedQuiz.questions as QuestionResult[]) ?? [],
               }}
               hideStartNew
-              onStartNew={() => { }}
             />
           )}
         </DialogContent>

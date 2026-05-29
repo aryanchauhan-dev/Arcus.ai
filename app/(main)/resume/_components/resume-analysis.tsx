@@ -50,8 +50,8 @@ export default function ResumeAnalysis({
                     <CardContent>
                         {strengths.length > 0 ? (
                             <ul className="space-y-2">
-                                {strengths.map((s) => (
-                                    <li key={s} className="flex items-start gap-2 text-sm">
+                                {strengths.map((s, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm">
                                         <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                                         <span>{s}</span>
                                     </li>
@@ -74,8 +74,8 @@ export default function ResumeAnalysis({
                     <CardContent>
                         {weaknesses.length > 0 ? (
                             <ul className="space-y-2">
-                                {weaknesses.map((w) => (
-                                    <li key={w} className="flex items-start gap-2 text-sm">
+                                {weaknesses.map((w, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm">
                                         <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
                                         <span>{w}</span>
                                     </li>
@@ -104,9 +104,9 @@ export default function ResumeAnalysis({
                     <CardContent>
                         {missingKeywords.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
-                                {missingKeywords.map((kw) => (
+                                {missingKeywords.map((kw, i) => (
                                     <Badge
-                                        key={kw}
+                                        key={i}
                                         variant="outline"
                                         className="border-yellow-500/40 text-yellow-600 bg-yellow-500/5 text-xs"
                                     >

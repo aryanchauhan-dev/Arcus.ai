@@ -37,7 +37,7 @@ type Props = {
 const OnboardingForm = ({ industries }: Props) => {
   const router = useRouter();
 
-  const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null);
+  const selectedIndustry = industries.find((i) => i.id === watchIndustry) ?? null;
   const [serverError, setServerError] = useState<string | null>(null);
 
   const { loading: updateLoading, fn: updateUserFn } = useFetch(updateUser);
@@ -99,9 +99,6 @@ const OnboardingForm = ({ industries }: Props) => {
               <Select
                 onValueChange={(value) => {
                   setValue("industry", value, { shouldValidate: true });
-                  setSelectedIndustry(
-                    industries.find((i) => i.id === value) ?? null
-                  );
                   setValue("subIndustry", "");
                 }}
               >

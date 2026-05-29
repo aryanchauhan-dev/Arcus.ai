@@ -30,7 +30,7 @@ const Header = async () => {
     <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-50 supports-backdrop-filter:bg-background/60">
       <nav className="px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
-        <Link href="/" aria-label="skillExa — go to homepage">
+        <Link href="/" aria-label="Arcus.ai — go to homepage">
           <Image
             src="/arcus_ai_logo.svg"
             alt=""

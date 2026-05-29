@@ -30,11 +30,11 @@ export function SignOutButton({
         method: "POST",
         credentials: "same-origin",
       });
-
       router.push("/sign-in");
       router.refresh();
     } catch {
       setError("Sign out failed. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
