@@ -68,7 +68,7 @@ export default function PerformanceChart({ assessments }: { assessments: Assessm
     );
   }
 
-  const chartData: ChartData[] = assessments.map((assessment) => ({
+  const chartData: ChartData[] = [...assessments].reverse().map((assessment) => ({
     date: format(new Date(assessment.createdAt), "MMM dd, HH:mm"),
     score: assessment.quizScore,
   }));
@@ -105,9 +105,9 @@ export default function PerformanceChart({ assessments }: { assessments: Assessm
               <Line
                 type="monotone"
                 dataKey="score"
-                stroke="hsl(var(--primary))"
+                stroke="var(--primary)"
                 strokeWidth={2}
-                dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                dot={{ fill: "var(--primary)", r: 4 }}
                 activeDot={{ r: 6 }}
               />
             </LineChart>
