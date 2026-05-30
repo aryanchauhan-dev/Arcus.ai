@@ -36,10 +36,7 @@ type Props = {
 
 const OnboardingForm = ({ industries }: Props) => {
   const router = useRouter();
-
-  const selectedIndustry = industries.find((i) => i.id === watchIndustry) ?? null;
   const [serverError, setServerError] = useState<string | null>(null);
-
   const { loading: updateLoading, fn: updateUserFn } = useFetch(updateUser);
 
   const {
@@ -52,7 +49,8 @@ const OnboardingForm = ({ industries }: Props) => {
     resolver: zodResolver(onboardingSchema),
   });
 
-  const watchIndustry = watch("industry");
+  const watchIndustry = watch("industry");  // ← must be after useForm
+  const selectedIndustry = industries.find((i) => i.id === watchIndustry) ?? null;  // ← now safe
 
   const onSubmit = async (values: OnboardingOutput) => {
     setServerError(null);
@@ -72,7 +70,6 @@ const OnboardingForm = ({ industries }: Props) => {
         router.refresh();
         router.push("/dashboard");
       }
-
     } catch {
       setServerError("Failed to save profile. Please try again.");
     }
@@ -81,7 +78,6 @@ const OnboardingForm = ({ industries }: Props) => {
   return (
     <div className="flex items-center justify-center bg-background min-h-screen">
       <Card className="w-full max-w-lg mx-2">
-
         <CardHeader>
           <CardTitle className="text-3xl font-bold">
             Complete Your Profile
